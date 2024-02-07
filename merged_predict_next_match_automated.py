@@ -685,4 +685,4 @@ for index, row in df_nn_predictions[10:].iterrows():
     st.plotly_chart(fig, use_container_width=True)
 
 
-"""❤️👍😄"""
+"""👁️👥"""
