@@ -94,8 +94,21 @@ def get_league_odds(api_key, league_id, season='2023-24'):
     return next_matches_data
 
 # Use your API key here
-next_matches_data = get_league_odds('331aeb91b430fbd33e1712d535307961', 'soccer_spain_la_liga')
-next_matches_data_epl = get_league_odds('331aeb91b430fbd33e1712d535307961', 'soccer_epl')
+try:
+    next_matches_data = get_league_odds('331aeb91b430fbd33e1712d535307961', 'soccer_spain_la_liga')
+except:
+    try:
+        next_matches_data = get_league_odds('b2c7cf8650da9c469a64bf8ba7d97e43', 'soccer_spain_la_liga')
+    except:
+        """We have had more visitors than expected, please try again latter 😔"""
+
+try:
+    next_matches_data_epl = get_league_odds('331aeb91b430fbd33e1712d535307961', 'soccer_epl')
+except:
+    try:
+        next_matches_data_epl = get_league_odds('b2c7cf8650da9c469a64bf8ba7d97e43', 'soccer_epl')
+    except:
+        sys.exit(0)
 
 
 # Convert the list of dictionaries into a DataFrame
