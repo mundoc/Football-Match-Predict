@@ -98,15 +98,15 @@ try:
     next_matches_data = get_league_odds('331aeb91b430fbd33e1712d535307961a', 'soccer_spain_la_liga')
 except:
     try:
-        next_matches_data = get_league_odds('b2c7cf8650da9c469a64bf8ba7d97e43a', 'soccer_spain_la_liga')
+        next_matches_data = get_league_odds('bc0d7087b7192ea135934d24e8c550a1', 'soccer_spain_la_liga')
     except:
-        """We have had more visitors than expected, please try again latter 😔"""
+        """We have had more visitors than expected, please try again later 😔"""
 
 try:
     next_matches_data_epl = get_league_odds('331aeb91b430fbd33e1712d535307961a', 'soccer_epl')
 except:
     try:
-        next_matches_data_epl = get_league_odds('b2c7cf8650da9c469a64bf8ba7d97e43a', 'soccer_epl')
+        next_matches_data_epl = get_league_odds('bc0d7087b7192ea135934d24e8c550a1', 'soccer_epl')
     except:
         sys.exit(0)
 
