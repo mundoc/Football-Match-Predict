@@ -6,5 +6,6 @@ tensorflow
 requests
 plotly>=5.0.0
 bs4
+beautifulsoup4
 BeautifulSoup
 
