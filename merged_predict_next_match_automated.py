@@ -19,6 +19,8 @@ from collections import defaultdict
 from datetime import datetime
 import streamlit as st
 import plotly.graph_objs as go
+import bs4
+from bs4 import BeautifulSoup
 
 
 # Ignore all warnings
@@ -54,62 +56,62 @@ matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1
 
 # Create new rows (with the upcoming match)
 
-def get_league_odds(api_key, league_id, season='2023-24'):
-    url = f"https://api.the-odds-api.com/v4/sports/{league_id}/odds"
-    params = {
-        'apiKey': api_key,
-        'regions': 'eu',
-        'markets': 'h2h',
-        'oddsFormat': 'decimal',
-    }
+def get_next_matches(url, league_id, season='2023-24', num_matches=10):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
 
-    response = requests.get(url, params=params)
-    data = response.json()
+    # Find the relevant elements containing match data
+    matches = soup.find_all('div', class_='fixres__item')
+    
+    # Extract the date from the h4 tag
+    match_date_tag = soup.find('h4', class_='fixres__header2')
+    match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with th and month and split it
+    match_date_str = ' '.join(match_date_str)  # Join the split parts
+    match_date_str = match_date_str.replace('th', '')  # Remove 'th' from the day string
+    match_date = datetime.strptime(match_date_str, "%d %B")  # Convert to datetime object
+
+    current_year = datetime.now().year
 
     next_matches_data = []
 
-    # Limit to the first 10 fixtures
-    for match in data[:10]:
+    # Counter for the number of matches found
+    matches_found = 0
+
+    for match in matches:  # Iterate over all matches
+        # Extract data for each match
+        home_team = match.find('span', class_='swap-text__target').text.strip()
+        away_team = match.find_all('span', class_='swap-text__target')[1].text.strip()
+        match_time = match.find('span', class_='matches__date').text.strip()
+
+        # Remove the year from the match time
+        match_time = match_time.split(", ")[-1]
+
+        # Convert match time to a datetime object
+        match_time = datetime.strptime(match_time, "%H:%M")
+
         match_data = {
             'Div': league_id.upper(),
-            'Date': datetime.strptime(match['commence_time'], "%Y-%m-%dT%H:%M:%SZ").strftime('%Y-%m-%d %H:%M:%S'),
+            'Date': datetime(current_year, match_date.month, match_date.day, match_time.hour, match_time.minute).strftime('%Y-%m-%d %H:%M:%S'),
             'Season': season,
-            'HomeTeam': match['home_team'],
-            'AwayTeam': match['away_team'],
+            'HomeTeam': home_team,
+            'AwayTeam': away_team,
         }
 
-        # Assuming the first bookmaker has the odds we're interested in
-        if match['bookmakers']:
-            bookmaker = match['bookmakers'][0]
-            for market in bookmaker['markets']:
-                if market['key'] == 'h2h':
-                    outcomes = {outcome['name']: outcome['price'] for outcome in market['outcomes']}
-                    match_data['B365H'] = outcomes.get(match['home_team'])
-                    match_data['B365D'] = outcomes.get('Draw')
-                    match_data['B365A'] = outcomes.get(match['away_team'])
-                    break
-
         next_matches_data.append(match_data)
+        matches_found += 1
+
+        if matches_found >= num_matches:
+            break  # Stop iteration after collecting the desired number of matches
 
     return next_matches_data
 
-# Use your API key here
-try:
-    next_matches_data = get_league_odds('0252ea5da385ab70095a53f4944133a2', 'soccer_spain_la_liga')
-except:
-    try:
-        next_matches_data = get_league_odds('bc0d7087b7192ea135934d24e8c550a1a', 'soccer_spain_la_liga')
-    except:
-        """We have had more visitors than expected, please try again later 😔"""
 
-try:
-    next_matches_data_epl = get_league_odds('0252ea5da385ab70095a53f4944133a2', 'soccer_epl')
-except:
-    try:
-        next_matches_data_epl = get_league_odds('bc0d7087b7192ea135934d24e8c550a1a', 'soccer_epl')
-    except:
-        sys.exit(0)
+# Use the function to get data for different leagues
+spanish_league_url = 'https://www.skysports.com/la-liga-fixtures'
+epl_url = 'https://www.skysports.com/premier-league-fixtures'
 
+next_matches_data = get_next_matches(spanish_league_url, 'soccer_spain_la_liga', num_matches=10)
+next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', num_matches=10)
 
 # Convert the list of dictionaries into a DataFrame
 next_matches_df = pd.DataFrame(next_matches_data)
@@ -127,7 +129,7 @@ matches = matches.replace({
     'Villareal': 'Villarreal',
     'Celta Vigo': 'Celta',
     'CA Osasuna': 'Osasuna',
-    'Atlético Madrid': 'Ath Madrid',
+    'Atletico Madrid': 'Ath Madrid',
     'Athletic Bilbao': 'Ath Bilbao',
     'Almería': 'Almeria',
     'Rayo Vallecano': 'Vallecano',
@@ -135,14 +137,17 @@ matches = matches.replace({
     'Cádiz CF': 'Cadiz',
     'Alavés':'Alaves',
     'Real Sociedad':'Sociedad',
+    'Real Betis':'Betis',
+    'Real Mallorca':'Mallorca',
     'Wolverhampton Wanderers':'Wolves',
     'Tottenham Hotspur':'Tottenham',
     'Brighton and Hove Albion':'Brighton',
-    'Nottingham Forest':'Forest',
+    'Nottingham Forest':"Nott'm Forest",
     'Newcastle United':'Newcastle',
     'West Ham United':'West Ham',
     'Manchester United':'Man United',
-    'Manchester City':'Man City'
+    'Manchester City':'Man City',
+    'Luton Town':'Luton'
 
 })
 
