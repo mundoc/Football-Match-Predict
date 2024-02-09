@@ -19,6 +19,7 @@ from collections import defaultdict
 from datetime import datetime
 import streamlit as st
 import plotly.graph_objs as go
+import bs4
 from bs4 import BeautifulSoup
 
 
