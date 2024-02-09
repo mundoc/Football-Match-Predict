@@ -620,7 +620,7 @@ def plot_donut_chart(home_percentage, draw_percentage, away_percentage):
     # Create the donut chart
     fig = go.Figure(data=[go.Pie(labels=outcome_labels,
                                  values=percentages,
-                                 hole=.6,
+                                 hole=.4,
                                  marker_colors=colors,
                                  textinfo='text+percent',
                                  textposition='outside',
