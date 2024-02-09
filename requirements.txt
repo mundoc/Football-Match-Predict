@@ -3,6 +3,5 @@ numpy
 scikit-learn
 tensorflow
 requests
-plotly>=5.0.0
 beautifulsoup4
-
+plotly>=5.0.0
