@@ -620,7 +620,7 @@ def plot_donut_chart(home_percentage, draw_percentage, away_percentage):
     # Create the donut chart
     fig = go.Figure(data=[go.Pie(labels=outcome_labels,
                                  values=percentages,
-                                 hole=.3,
+                                 hole=.4,
                                  marker_colors=colors,
                                  textinfo='text+percent',
                                  textposition='outside',
@@ -653,7 +653,7 @@ for index, row in df_nn_predictions[:10].iterrows():
     st.write(f"**{home_team}** vs **{away_team}**")
     
     # Display the chart in the Streamlit app
-    st.plotly_chart(fig, use_container_width=True, width=100, height=50)
+    st.plotly_chart(fig, use_container_width=True, width=200, height=100)
 
 st.title('EPL Predictions')
 
