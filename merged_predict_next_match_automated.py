@@ -95,7 +95,7 @@ def get_league_odds(api_key, league_id, season='2023-24'):
 
 # Use your API key here
 try:
-    next_matches_data = get_league_odds('331aeb91b430fbd33e1712d535307961a', 'soccer_spain_la_liga')
+    next_matches_data = get_league_odds('0252ea5da385ab70095a53f4944133a2', 'soccer_spain_la_liga')
 except:
     try:
         next_matches_data = get_league_odds('bc0d7087b7192ea135934d24e8c550a1a', 'soccer_spain_la_liga')
@@ -103,7 +103,7 @@ except:
         """We have had more visitors than expected, please try again later 😔"""
 
 try:
-    next_matches_data_epl = get_league_odds('331aeb91b430fbd33e1712d535307961a', 'soccer_epl')
+    next_matches_data_epl = get_league_odds('0252ea5da385ab70095a53f4944133a2', 'soccer_epl')
 except:
     try:
         next_matches_data_epl = get_league_odds('bc0d7087b7192ea135934d24e8c550a1a', 'soccer_epl')
@@ -606,7 +606,7 @@ df_nn_predictions = pd.DataFrame({
 df_nn_predictions = df_nn_predictions.sort_index()
 
 
-def plot_donut_chart(home_team, away_team, home_percentage, draw_percentage, away_percentage):
+def plot_donut_chart(home_percentage, draw_percentage, away_percentage):
 
     # Desired order of outcomes
     outcome_labels = ["Away Win", "Draw", "Home Win"]
@@ -629,36 +629,8 @@ def plot_donut_chart(home_team, away_team, home_percentage, draw_percentage, awa
                                  sort=False
                                  )])
 
-    # Customize hoverinfo and the look of the chart
+    # Customize hover info and the look of the chart
     fig.update_traces(hoverinfo='label+percent', textfont_size=12, marker=dict(line=dict(color='#000000', width=0.4)))
-
-    # Update layout for a wide chart
-    fig.update_layout(
-        showlegend=False,
-        annotations=[
-            dict(
-                text=f"{home_team}",  # Home team and percentage
-                x=0.2, y=0.5,
-                font=dict(size=16, color='#000000'),  # Customize home team font size and color
-                showarrow=False
-            ),
-            dict(
-                text=f"{away_team}",  # Away team and percentage
-                x=0.8, y=0.5,
-                font=dict(size=16, color='#000000'),  # Customize away team font size and color
-                showarrow=False
-            )
-        ],
-        margin=dict(l=40, r=20, t=20, b=20),
-        width=700,  # Set a fixed width for the figure
-        height=125  # Set a fixed height for the figure
-    )
-    # Adjust y positions of the annotations to move them further down from the top of the chart
-    annotations = []
-    for ann in fig['layout']['annotations']:
-        ann['y'] = ann['y'] - 0.2  # Decrease this value to move the annotation down
-        annotations.append(ann)
-    fig['layout']['annotations'] = annotations
 
     return fig
 
@@ -675,11 +647,13 @@ for index, row in df_nn_predictions[:10].iterrows():
     away_win_probability = row['Away Win Probability']
 
     # Plot the donut chart
-    fig = plot_donut_chart(home_team, away_team, home_win_probability, draw_probability, away_win_probability)
+    fig = plot_donut_chart(home_win_probability, draw_probability, away_win_probability)
 
+    # Display the team names alongside the chart
+    st.write(f"**{home_team}** vs **{away_team}**")
+    
     # Display the chart in the Streamlit app
     st.plotly_chart(fig, use_container_width=True)
-
 
 st.title('EPL Predictions')
 
@@ -692,10 +666,13 @@ for index, row in df_nn_predictions[10:].iterrows():
     away_win_probability = row['Away Win Probability']
 
     # Plot the donut chart
-    fig = plot_donut_chart(home_team, away_team, home_win_probability, draw_probability, away_win_probability)
+    fig = plot_donut_chart(home_win_probability, draw_probability, away_win_probability)
 
+    # Display the team names alongside the chart
+    st.write(f"**{home_team}** vs **{away_team}**")
+    
     # Display the chart in the Streamlit app
     st.plotly_chart(fig, use_container_width=True)
 
 
-"""👁️👥"""
+"""👁🤔"""
