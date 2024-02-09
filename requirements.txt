@@ -1,9 +1,8 @@
-
 pandas
 numpy
 scikit-learn
 tensorflow
 requests
 plotly>=5.0.0
-beautifulsoup4==4.9.3
+beautifulsoup4
 
