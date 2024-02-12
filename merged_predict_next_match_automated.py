@@ -685,7 +685,7 @@ for index, row in df_nn_predictions[10:].iterrows():
     st.write(f"**{home_team}** vs **{away_team}**")
     
     # Adjust spacing between team name and chart
-    st.write("<style>.stFigure { margin-top: -80px; }</style>", unsafe_allow_html=True)
+    st.write("<style>.stFigure { margin-top: -100px; }</style>", unsafe_allow_html=True)
 
 
 
