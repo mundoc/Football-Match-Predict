@@ -637,7 +637,7 @@ def plot_donut_chart(home_percentage, draw_percentage, away_percentage):
     # Customize hover info and the look of the chart
     fig.update_traces(hoverinfo='label+percent', textfont_size=12, marker=dict(line=dict(color='#000000', width=0.3)))
     # Adjust the size of the entire figure
-    fig.update_layout(width=200, height=100)
+    fig.update_layout(width=200, height=200)
 
     return fig
 
