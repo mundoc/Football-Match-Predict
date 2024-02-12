@@ -684,5 +684,9 @@ for index, row in df_nn_predictions[10:].iterrows():
     # Display the chart in the Streamlit app
     st.plotly_chart(fig, use_container_width=True, width=200, height=100)
 
+    # Adjust spacing between components
+    st.write("<style>div.row-widget.stHorizontal { flex-direction: row; }</style>", unsafe_allow_html=True)
+    st.write("<style>.stHorizontal .stImage { margin-right: 10px; }</style>", unsafe_allow_html=True)
 
-"""👁🤔"""
+
+"""👁⚫️"""
