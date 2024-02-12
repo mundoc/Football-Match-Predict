@@ -686,7 +686,7 @@ for index, row in df_nn_predictions[10:].iterrows():
 
     # Adjust spacing between components
     st.write("<style>div.row-widget.stHorizontal { flex-direction: row; }</style>", unsafe_allow_html=True)
-    st.write("<style>.stHorizontal .stImage { margin-right: 10px; }</style>", unsafe_allow_html=True)
+    st.write("<style>.stHorizontal .stImage { margin-right: 5px; }</style>", unsafe_allow_html=True)
 
 
-"""👁⚫️"""
+"""👁⚫️😎"""
