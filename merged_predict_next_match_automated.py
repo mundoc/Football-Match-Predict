@@ -664,6 +664,9 @@ for index, row in df_nn_predictions[:10].iterrows():
     
     # Display the chart in the Streamlit app
     st.plotly_chart(fig, use_container_width=True, width=200, height=100)
+  
+    # Adjust spacing between team name and chart
+    st.write("<style>.stFigure { margin-top: -20px; }</style>", unsafe_allow_html=True)
 
 st.title('EPL Predictions')
 
@@ -681,12 +684,9 @@ for index, row in df_nn_predictions[10:].iterrows():
     # Display the team names alongside the chart
     st.write(f"**{home_team}** vs **{away_team}**")
     
-    # Display the chart in the Streamlit app
-    st.plotly_chart(fig, use_container_width=True, width=200, height=100)
+    # Adjust spacing between team name and chart
+    st.write("<style>.stFigure { margin-top: -20px; }</style>", unsafe_allow_html=True)
 
-    # Adjust spacing between components
-    st.write("<style>div.row-widget.stHorizontal { flex-direction: row; }</style>", unsafe_allow_html=True)
-    st.write("<style>.stHorizontal .stImage { margin-right: 2px; }</style>", unsafe_allow_html=True)
 
 
 """👁⚫️😎"""
