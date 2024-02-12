@@ -625,7 +625,7 @@ def plot_donut_chart(home_percentage, draw_percentage, away_percentage):
     # Create the donut chart
     fig = go.Figure(data=[go.Pie(labels=outcome_labels,
                                  values=percentages,
-                                 hole=.3,
+                                 hole=.4,
                                  marker_colors=colors,
                                  textinfo='text+percent',
                                  textposition='outside',
@@ -637,7 +637,7 @@ def plot_donut_chart(home_percentage, draw_percentage, away_percentage):
     # Customize hover info and the look of the chart
     fig.update_traces(hoverinfo='label+percent', textfont_size=12, marker=dict(line=dict(color='#000000', width=0.4)))
     # Adjust the size of the entire figure
-    fig.update_layout(width=200, height=250)
+    fig.update_layout(width=250, height=250)
 
     return fig
 
