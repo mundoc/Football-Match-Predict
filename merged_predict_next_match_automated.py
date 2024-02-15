@@ -687,4 +687,24 @@ for index, row in df_nn_predictions[10:].iterrows():
 
 
 
-"""👁⚫️"""
+# Set the title for the Streamlit app
+st.title('Accuracy distribution of the model')
+
+# Define the values for the histogram
+hist_values = np.array([0., 0., 0., 0., 0., 2., 0., 3., 1., 8., 14., 17., 29., 21., 18., 14., 8., 2., 1., 0., 0.])
+
+# Plot the histogram
+fig, ax = plt.subplots()
+ax.hist(hist_values, bins=np.arange(len(hist_values) + 1) - 0.5, color='skyblue', edgecolor='black')
+ax.axvline(x=12.32, color='red', linestyle='dashed', label='Average: 12.32')
+ax.set_xlabel('Number of Correct Predictions')
+ax.set_ylabel('Probability')
+ax.set_title('Accuracy distribution of the model for every 20 predictions')
+ax.legend()
+
+# Display the plot using Streamlit
+st.pyplot(fig)
+
+
+
+"""👁⚫️✨"""
