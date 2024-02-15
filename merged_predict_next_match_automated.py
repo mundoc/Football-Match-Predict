@@ -707,6 +707,6 @@ bars = alt.Chart(df).mark_bar().encode(
 )
 
 st.altair_chart(bars, use_container_width=True)
-st.write(f"Average number of correct predictions for every 20 predictions: 12.32 %")
+st.write(f"Average number of correct predictions for every 20 predictions: 12.32")
 
 """👁⚫️✨"""
