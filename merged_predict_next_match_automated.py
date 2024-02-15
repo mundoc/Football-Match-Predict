@@ -43,7 +43,7 @@ matches.reset_index(drop=True, inplace=True)
 # Drop rows where 'Date' is NaN
 matches = matches.dropna(subset=['Date'])
 
-matches['Date'] = pd.to_datetime(matches['Date'], format = 'mixed')
+matches['Date'] = pd.to_datetime(matches['Date'], errors='coerce')
 
 # Create the 'Season' column
 matches['Season'] = np.where(matches['Date'].dt.month >= 8,
