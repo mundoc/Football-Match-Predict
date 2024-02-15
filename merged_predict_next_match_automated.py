@@ -703,7 +703,7 @@ ax.set_title('Accuracy distribution of the model for every 20 predictions')
 ax.legend()
 
 # Display the plot using Streamlit
-st.pyplot(fig)
+st.pyplot(plt)
 
 
 
