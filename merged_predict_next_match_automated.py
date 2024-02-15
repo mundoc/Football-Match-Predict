@@ -696,9 +696,6 @@ import streamlit as st
 # Define the values for the histogram
 hist_values = np.array([0., 0., 0., 0., 0., 2., 0., 3., 1., 8., 14., 17., 29., 21., 18., 14., 8., 2., 1., 0., 0.])
 
-# Calculate the average
-average = np.average(np.arange(len(hist_values)), weights=hist_values)
-
 # Plot the histogram
 st.bar_chart(hist_values, use_container_width=True)
 st.xlabel('Number of Correct Predictions')
@@ -706,6 +703,6 @@ st.ylabel('Probability')
 st.title('Accuracy distribution of the model for every 20 predictions')
 
 # Write the average below the graph
-st.write(f"Average of correct number of predictions for every 20 predictions: {average}")
+st.write(f"Average of correct number of predictions for every 20 predictions: 12.32")
 
 """👁⚫️✨"""
