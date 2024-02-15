@@ -701,7 +701,7 @@ df = pd.DataFrame(data)
 # Plot the histogram
 bars = alt.Chart(df).mark_bar().encode(
     x=alt.X('Num of Correct Predictions:O', title='Number of Correct Predictions', axis=alt.Axis(labelAngle=0)),
-    y=alt.Y('Probability:Q', title='Probability')
+    y=alt.Y('Probability:Q', title='Probability', axis=alt.Axis(format='%'))  # Add percent formatting to y-axis
 ).properties(
     width=alt.Step(20)  # Adjust the width of each bar
 )
