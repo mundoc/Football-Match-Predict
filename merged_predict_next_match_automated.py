@@ -697,18 +697,14 @@ values = [0., 0., 0., 0., 0., 2., 0., 3., 1., 8., 14., 17., 29., 21., 18., 14., 
 average = np.mean(values)
 
 # Plot histogram
-fig, ax = plt.subplots()
-ax.hist(values, bins=10, alpha=0.7, color='blue', edgecolor='black')
+st.pyplot(plt.hist(values, bins=10, alpha=0.7, color='blue', edgecolor='black'))
 
 # Add vertical line for average
-ax.axvline(x=average, color='red', linestyle='--', linewidth=2)
+plt.axvline(x=average, color='red', linestyle='--', linewidth=2)
 
 # Add labels and title
 plt.xlabel('Number of Correct Predictions')
 plt.ylabel('Probability')
 plt.title('Accuracy distribution of the model for every 20 predictions')
-
-# Display the plot
-st.pyplot(fig)
 
 """👁⚫️✨"""
