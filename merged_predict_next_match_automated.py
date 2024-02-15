@@ -695,12 +695,12 @@ st.title('Accuracy distribution of the model for every 20 predictions')
 hist_values = np.array([0., 0., 0., 0., 0., 2., 0., 3., 1., 8., 14., 17., 29., 21., 18., 14., 8., 2., 1., 0., 0.])
 
 # Define the data frame for Altair
-data = {'Num. of Correct Predictions': range(len(hist_values)), 'Probability': hist_values}
+data = {'Num of Correct Predictions': range(len(hist_values)), 'Probability': hist_values}
 df = pd.DataFrame(data)
 
 # Plot the histogram
 bars = alt.Chart(df).mark_bar().encode(
-    x=alt.X('Num. of Correct Predictions:O', title='Number of Correct Predictions', axis=alt.Axis(labelAngle=0)),
+    x=alt.X('Num of Correct Predictions:O', title='Number of Correct Predictions', axis=alt.Axis(labelAngle=0)),
     y=alt.Y('Probability:Q', title='Probability')
 ).properties(
     width=alt.Step(20)  # Adjust the width of each bar
