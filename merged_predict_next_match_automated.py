@@ -686,7 +686,7 @@ for index, row in df_nn_predictions[10:].iterrows():
     st.plotly_chart(fig, use_container_width=True, width=200, height=100)
 
 # Set title for Probability Distribution
-Accuracy distribution of the model for every 20 predictions
+st.title('Accuracy distribution of the model')
 
 # Define a function to evaluate a subset of data and return the accuracy
 def evaluate_subset(subset_indices, X_data, y_data):
