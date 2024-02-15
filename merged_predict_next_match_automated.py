@@ -21,6 +21,7 @@ import streamlit as st
 import plotly.graph_objs as go
 import bs4
 from bs4 import BeautifulSoup
+import altair as alt
 
 
 # Ignore all warnings
@@ -690,19 +691,19 @@ for index, row in df_nn_predictions[10:].iterrows():
 # Set the title for the Streamlit app
 st.title('Accuracy distribution of the model')
 
-import numpy as np
-import streamlit as st
-
 # Define the values for the histogram
 hist_values = np.array([0., 0., 0., 0., 0., 2., 0., 3., 1., 8., 14., 17., 29., 21., 18., 14., 8., 2., 1., 0., 0.])
 
-# Plot the histogram
-st.bar_chart(hist_values, use_container_width=True)
-st.xlabel('Number of Correct Predictions')
-st.ylabel('Probability')
-st.title('Accuracy distribution of the model for every 20 predictions')
+# Define the data frame for Altair
+data = {'Number of Correct Predictions': range(len(hist_values)), 'Probability': hist_values}
+df = pd.DataFrame(data)
 
-# Write the average below the graph
-st.write(f"Average of correct number of predictions for every 20 predictions: 12.32")
+# Plot the histogram
+bars = alt.Chart(df).mark_bar().encode(
+    x=alt.X('Number of Correct Predictions:O', title='Number of Correct Predictions'),
+    y=alt.Y('Probability:Q', title='Probability')
+)
+
+st.altair_chart(bars, use_container_width=True)
 
 """👁⚫️✨"""
