@@ -685,6 +685,63 @@ for index, row in df_nn_predictions[10:].iterrows():
     # Display the chart in the Streamlit app
     st.plotly_chart(fig, use_container_width=True, width=200, height=100)
 
+# Set title for Probability Distribution
+Accuracy distribution of the model for every 20 predictions
 
+# Define a function to evaluate a subset of data and return the accuracy
+def evaluate_subset(subset_indices, X_data, y_data):
+    y_subset_pred = NN_model_categorical.predict(X_data.iloc[subset_indices])  # Using iloc for DataFrame slicing
+    y_subset_pred_rounded = np.argmax(y_subset_pred, axis=1)
+    subset_accuracy = accuracy_score(y_data.iloc[subset_indices], y_subset_pred_rounded)  # Using iloc for DataFrame slicing
+    return subset_accuracy
 
-"""👁⚫️"""
+# Convert X_val_scaled and y_val to DataFrame if they're not already
+if not isinstance(X_val_scaled, pd.DataFrame):
+    X_val_scaled = pd.DataFrame(X_val_scaled)
+
+if not isinstance(y_val, pd.Series):
+    y_val = pd.Series(y_val)
+
+# Define the size of each subset
+subset_size = 20
+
+# Calculate the number of iterations
+num_iterations = math.ceil(len(X_val_scaled) / subset_size)
+
+# Initialize a list to store the number of correct predictions in each iteration
+correct_predictions = []
+
+# Iterate over the validation data in chunks of 20 matches
+for i in range(num_iterations):
+    # Select subset indices
+    start_index = i * subset_size
+    end_index = min((i + 1) * subset_size, len(X_val_scaled))
+    subset_indices = range(start_index, end_index)
+    
+    # Evaluate the subset and append the accuracy to the list
+    subset_accuracy = evaluate_subset(subset_indices, X_val_scaled, y_val)
+    correct_predictions.append(subset_accuracy * subset_size)
+
+# Calculate the average number of correct predictions
+average_correct_predictions = np.mean(correct_predictions)
+
+# Plot a histogram of the number of correct predictions
+hist, bins, _ = plt.hist(correct_predictions, bins=np.arange(0, subset_size + 2, 1) - 0.5, color='skyblue', edgecolor='black')  # Adjusting the bins
+plt.axvline(x=average_correct_predictions, color='red', linestyle='dashed', linewidth=1, label=f'Average: {average_correct_predictions:.2f}')
+plt.xlabel('Number of Correct Predictions')
+plt.ylabel('Probability')
+plt.title('Accuracy distribution of the model for every 20 predictions')
+plt.legend()
+
+# Convert frequencies to percentages
+bin_centers = 0.5 * (bins[:-1] + bins[1:])
+percentages = (hist / sum(hist)) * 100
+
+# Set y-axis ticks as percentages
+plt.gca().set_yticks(np.arange(0, max(percentages) + 10, 10))
+plt.gca().set_yticklabels([f"{int(percentage)}%" for percentage in np.arange(0, max(percentages) + 10, 10)])
+
+# Display the plot in Streamlit
+st.pyplot()
+
+"""👁⚫️❤️"""
