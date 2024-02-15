@@ -693,19 +693,11 @@ st.title('Accuracy distribution of the model')
 # Define the values for the histogram
 hist_values = np.array([0., 0., 0., 0., 0., 2., 0., 3., 1., 8., 14., 17., 29., 21., 18., 14., 8., 2., 1., 0., 0.])
 
-# Create a new Matplotlib figure
-fig, ax = plt.subplots(figsize=(8, 6))
-
 # Plot the histogram
-ax.hist(hist_values, bins=np.arange(len(hist_values) + 1) - 0.5, color='skyblue', edgecolor='black')
-ax.axvline(x=12.32, color='red', linestyle='dashed', label='Average: 12.32')
-ax.set_xlabel('Number of Correct Predictions')
-ax.set_ylabel('Probability')
-ax.set_title('Accuracy distribution of the model for every 20 predictions')
-ax.legend()
+st.bar_chart(hist_values, use_container_width=True)
 
-# Display the plot using Streamlit
-st.pyplot(fig)
+# Add average line
+st.write("Average: 12.32")
 
 
 """👁⚫️✨"""
