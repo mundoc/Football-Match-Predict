@@ -692,7 +692,7 @@ for index, row in df_nn_predictions[10:].iterrows():
 st.title('Accuracy distribution of the model for every 20 predictions')
 
 # Define the values for the histogram
-hist_values = np.array([0., 0., 0., 0., 0., 2., 0., 3., 1., 8., 14., 17., 29., 21., 18., 14., 8., 2., 1., 0., 0.])
+hist_values = np.array([0, 0, 0, 0, 0, .2, 0, .3, .1, .8, .14, .17, .29, .21, .18, .14, .8, .2, .1, 0, 0])
 
 # Define the data frame for Altair
 data = {'Num of Correct Predictions': range(len(hist_values)), 'Probability': hist_values}
