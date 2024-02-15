@@ -700,10 +700,10 @@ df = pd.DataFrame(data)
 
 # Plot the histogram
 bars = alt.Chart(df).mark_bar().encode(
-    x=alt.X('Number of Correct Predictions:O', title='Number of Correct Predictions'),
+    x=alt.X('Number of Correct Predictions:O', title='Number of Correct Predictions', axis=alt.Axis(labelAngle=0)),
     y=alt.Y('Probability:Q', title='Probability')
 ).properties(
-    width=alt.Step(20)  # Adjust the width of each bar
+    width=alt.Step(30)  # Adjust the width of each bar
 )
 
 st.altair_chart(bars, use_container_width=True)
