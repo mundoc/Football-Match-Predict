@@ -689,7 +689,7 @@ for index, row in df_nn_predictions[10:].iterrows():
 
 
 # Set the title for the Streamlit app
-st.title('Accuracy distribution of the model')
+st.title('Accuracy distribution of the model for every 20 predictions')
 
 # Define the values for the histogram
 hist_values = np.array([0., 0., 0., 0., 0., 2., 0., 3., 1., 8., 14., 17., 29., 21., 18., 14., 8., 2., 1., 0., 0.])
@@ -702,8 +702,12 @@ df = pd.DataFrame(data)
 bars = alt.Chart(df).mark_bar().encode(
     x=alt.X('Number of Correct Predictions:O', title='Number of Correct Predictions'),
     y=alt.Y('Probability:Q', title='Probability')
+).properties(
+    width=alt.Step(20)  # Adjust the width of each bar
 )
 
 st.altair_chart(bars, use_container_width=True)
+
+st.write(f"Average number of correct predictions for every 20 predictions: 12.32")
 
 """👁⚫️✨"""
