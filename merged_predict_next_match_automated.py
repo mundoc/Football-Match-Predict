@@ -68,7 +68,7 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
     match_date_tag = soup.find('h4', class_='fixres__header2')
     match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with sufiix and month and split it
     match_date_str = ' '.join(match_date_str)  # Join the split parts
-    match_date_str = re.sub(r'(?<=\d)(st|nd|rd|th)\b', '', match_date_str) # Remove suffix from the day string
+    match_date_str = match_date_str.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') # Remove suffix from the day string
     match_date = datetime.strptime(match_date_str, "%d %B")  # Convert to datetime object
 
     current_year = datetime.now().year
