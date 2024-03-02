@@ -588,7 +588,7 @@ tf.random.set_seed(seed_value)
 # Categrocial NN
 
 # Load the saved model
-NN_model_categorical = tf.keras.models.load_model('NN_model_categorical_complete.h5')
+NN_model_categorical = tf.keras.models.load_model('NN_model.h5')
 
 # NN Categorical predictions
 
