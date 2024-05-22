@@ -44,8 +44,7 @@ matches.reset_index(drop=True, inplace=True)
 # Drop rows where 'Date' is NaN
 matches = matches.dropna(subset=['Date'])
 
-# Convert 'Date' to datetime format
-matches['Date'] = pd.to_datetime(matches['Date'], format='mixed')
+matches['Date'] = pd.to_datetime(matches['Date'], format = 'mixed')
 
 # Create the 'Season' column
 matches['Season'] = np.where(matches['Date'].dt.month >= 8,
@@ -55,52 +54,41 @@ matches['Season'] = np.where(matches['Date'].dt.month >= 8,
 # Convert the 'Season' column to a string in the 'YYYY-YY' format
 matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1).astype(str).str[-2:]
 
-# Function to get the next matches
+
+# Create new rows (with the upcoming match)
+
 def get_next_matches(url, league_id, season='2023-24', num_matches=10):
     response = requests.get(url)
-    if response.status_code != 200:
-        print(f"Error: Failed to fetch the page. Status code: {response.status_code}")
-        return []
-    
     soup = BeautifulSoup(response.content, 'html.parser')
-
-    # Debugging: Print a portion of the fetched HTML content
-    print(soup.prettify()[:1000])
 
     # Find the relevant elements containing match data
     matches = soup.find_all('div', class_='fixres__item')
     
     # Extract the date from the h4 tag
     match_date_tag = soup.find('h4', class_='fixres__header2')
-    if match_date_tag is None:
-        print(f"Error: No match date found at {url}")
-        return []
-
-    match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with suffix and month and split it
+    match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with sufiix and month and split it
     match_date_str = ' '.join(match_date_str)  # Join the split parts
-    match_date_str = match_date_str.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')  # Remove suffix from the day string
-
-    try:
-        match_date = datetime.strptime(match_date_str, "%d %B")  # Convert to datetime object
-    except ValueError as e:
-        print(f"Error parsing date: {match_date_str}. Error: {e}")
-        return []
+    match_date_str = match_date_str.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') # Remove suffix from the day string
+    match_date = datetime.strptime(match_date_str, "%d %B")  # Convert to datetime object
 
     current_year = datetime.now().year
 
     next_matches_data = []
+
+    # Counter for the number of matches found
     matches_found = 0
 
-    for match in matches:
+    for match in matches:  # Iterate over all matches
+        # Extract data for each match
         home_team = match.find('span', class_='swap-text__target').text.strip()
         away_team = match.find_all('span', class_='swap-text__target')[1].text.strip()
-        match_time = match.find('span', class_='matches__date').text.strip().split(", ")[-1]
+        match_time = match.find('span', class_='matches__date').text.strip()
 
-        try:
-            match_time = datetime.strptime(match_time, "%H:%M")
-        except ValueError as e:
-            print(f"Error parsing match time: {match_time}. Error: {e}")
-            continue
+        # Remove the year from the match time
+        match_time = match_time.split(", ")[-1]
+
+        # Convert match time to a datetime object
+        match_time = datetime.strptime(match_time, "%H:%M")
 
         match_data = {
             'Div': league_id.upper(),
@@ -114,9 +102,10 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
         matches_found += 1
 
         if matches_found >= num_matches:
-            break
+            break  # Stop iteration after collecting the desired number of matches
 
     return next_matches_data
+
 
 # Use the function to get data for different leagues
 spanish_league_url = 'https://www.skysports.com/la-liga-fixtures'
@@ -124,7 +113,6 @@ epl_url = 'https://www.skysports.com/premier-league-fixtures'
 
 next_matches_data = get_next_matches(spanish_league_url, 'soccer_spain_la_liga', num_matches=10)
 next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', num_matches=10)
-
 
 # Convert the list of dictionaries into a DataFrame
 next_matches_df = pd.DataFrame(next_matches_data)
