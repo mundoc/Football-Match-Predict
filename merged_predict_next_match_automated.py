@@ -58,8 +58,13 @@ matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1
 # Create new rows (with the upcoming match)
 
 def get_next_matches(url, league_id, season='2023-24', num_matches=10):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Ensure the request was successful
+        soup = BeautifulSoup(response.content, 'html.parser')
+    except requests.RequestException as e:
+        print(f"Error fetching URL: {e}")
+        return []
 
     # Find the relevant elements containing match data
     matches = soup.find_all('div', class_='fixres__item')
@@ -84,20 +89,19 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
                 print(f"Error parsing date: {match_date_str}")
                 return []
         else:
-            print("No valid date found")
+            print("No valid date found in the header")
             return []
     else:
         print("Date header not found")
         return []
 
     current_year = datetime.now().year
-
     next_matches_data = []
 
     # Counter for the number of matches found
     matches_found = 0
 
-    for match in matches:  # Iterate over all matches
+    for match in matches:
         try:
             # Extract data for each match
             home_team = match.find('span', class_='swap-text__target').text.strip()
