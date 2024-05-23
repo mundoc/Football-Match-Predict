@@ -66,10 +66,29 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
     
     # Extract the date from the h4 tag
     match_date_tag = soup.find('h4', class_='fixres__header2')
-    match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with sufiix and month and split it
-    match_date_str = ' '.join(match_date_str)  # Join the split parts
-    match_date_str = match_date_str.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') # Remove suffix from the day string
-    match_date = datetime.strptime(match_date_str, "%d %B")  # Convert to datetime object
+    if match_date_tag:
+        match_date_str = match_date_tag.text.strip()
+
+        # Use regex to extract the day and month part
+        date_pattern = re.compile(r'\b(\d{1,2})(st|nd|rd|th)?\s+(\w+)\b')
+        match = date_pattern.search(match_date_str)
+        if match:
+            day = match.group(1)
+            month = match.group(3)
+            match_date_str = f"{day} {month}"
+
+            # Convert to datetime object
+            try:
+                match_date = datetime.strptime(match_date_str, "%d %B")
+            except ValueError:
+                print(f"Error parsing date: {match_date_str}")
+                return []
+        else:
+            print("No valid date found")
+            return []
+    else:
+        print("Date header not found")
+        return []
 
     current_year = datetime.now().year
 
@@ -79,33 +98,35 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
     matches_found = 0
 
     for match in matches:  # Iterate over all matches
-        # Extract data for each match
-        home_team = match.find('span', class_='swap-text__target').text.strip()
-        away_team = match.find_all('span', class_='swap-text__target')[1].text.strip()
-        match_time = match.find('span', class_='matches__date').text.strip()
+        try:
+            # Extract data for each match
+            home_team = match.find('span', class_='swap-text__target').text.strip()
+            away_team = match.find_all('span', class_='swap-text__target')[1].text.strip()
+            match_time_str = match.find('span', class_='matches__date').text.strip()
 
-        # Remove the year from the match time
-        match_time = match_time.split(", ")[-1]
+            # Extract and convert match time to a datetime object
+            match_time = datetime.strptime(match_time_str, "%H:%M")
 
-        # Convert match time to a datetime object
-        match_time = datetime.strptime(match_time, "%H:%M")
+            # Construct the full match datetime
+            match_datetime = datetime(current_year, match_date.month, match_date.day, match_time.hour, match_time.minute)
 
-        match_data = {
-            'Div': league_id.upper(),
-            'Date': datetime(current_year, match_date.month, match_date.day, match_time.hour, match_time.minute).strftime('%Y-%m-%d %H:%M:%S'),
-            'Season': season,
-            'HomeTeam': home_team,
-            'AwayTeam': away_team,
-        }
+            match_data = {
+                'Div': league_id.upper(),
+                'Date': match_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+                'Season': season,
+                'HomeTeam': home_team,
+                'AwayTeam': away_team,
+            }
 
-        next_matches_data.append(match_data)
-        matches_found += 1
+            next_matches_data.append(match_data)
+            matches_found += 1
 
-        if matches_found >= num_matches:
-            break  # Stop iteration after collecting the desired number of matches
+            if matches_found >= num_matches:
+                break  # Stop iteration after collecting the desired number of matches
+        except Exception as e:
+            print(f"Error processing match data: {e}")
 
     return next_matches_data
-
 
 # Use the function to get data for different leagues
 spanish_league_url = 'https://www.skysports.com/la-liga-fixtures'
