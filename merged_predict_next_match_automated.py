@@ -24,9 +24,12 @@ from bs4 import BeautifulSoup
 import altair as alt
 
 
+st.header("Season's Over!")
+st.subheader("Stay Tuned for the Next One!")
+
 # Ignore all warnings
 warnings.filterwarnings("ignore")
-
+"""
 # Read the CSV file into a Pandas DataFrame.
 matches_old = pd.read_csv('light_leagues_data.csv')
 
@@ -164,7 +167,7 @@ else:
     matches['Date'] = pd.to_datetime(matches['Date'], dayfirst=True)
     matches.sort_values(by='Date', inplace=True)
 
-"""
+
 # Function to assign points for a single match
 def assign_points(row):
     if row['FTR'] == 'H':
