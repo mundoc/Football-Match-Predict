@@ -116,7 +116,8 @@ next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', num_matches=10)
 
 # Check if there are no matches to scrape
 if not next_matches_data and not next_matches_data_epl:
-    st.write("Season is over! See you next time.")
+    st.header("Season's Over!")
+    st.subheader("Stay Tuned for the Next One!")
 else:
     # Convert the list of dictionaries into a DataFrame
     next_matches_df = pd.DataFrame(next_matches_data)
