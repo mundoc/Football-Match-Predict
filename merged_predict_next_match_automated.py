@@ -44,7 +44,7 @@ matches.reset_index(drop=True, inplace=True)
 # Drop rows where 'Date' is NaN
 matches = matches.dropna(subset=['Date'])
 
-matches['Date'] = pd.to_datetime(matches['Date'], format = 'mixed')
+matches['Date'] = pd.to_datetime(matches['Date'], format='mixed')
 
 # Create the 'Season' column
 matches['Season'] = np.where(matches['Date'].dt.month >= 8,
@@ -54,9 +54,7 @@ matches['Season'] = np.where(matches['Date'].dt.month >= 8,
 # Convert the 'Season' column to a string in the 'YYYY-YY' format
 matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1).astype(str).str[-2:]
 
-
 # Create new rows (with the upcoming match)
-
 def get_next_matches(url, league_id, season='2023-24', num_matches=10):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -66,6 +64,9 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
     
     # Extract the date from the h4 tag
     match_date_tag = soup.find('h4', class_='fixres__header2')
+    if not match_date_tag:
+        return []
+
     match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with sufiix and month and split it
     match_date_str = ' '.join(match_date_str)  # Join the split parts
     match_date_str = match_date_str.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') # Remove suffix from the day string
@@ -113,47 +114,50 @@ epl_url = 'https://www.skysports.com/premier-league-fixtures'
 next_matches_data = get_next_matches(spanish_league_url, 'soccer_spain_la_liga', num_matches=10)
 next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', num_matches=10)
 
-# Convert the list of dictionaries into a DataFrame
-next_matches_df = pd.DataFrame(next_matches_data)
-next_matches_df['Date'] = pd.to_datetime(next_matches_df['Date'], format='%Y-%m-%d %H:%M:%S')
-next_matches_df['Div'] = next_matches_df['Div'].replace('SOCCER_SPAIN_LA_LIGA', 'SP1')
-next_matches_pl_df = pd.DataFrame(next_matches_data_epl)
-next_matches_pl_df['Date'] = pd.to_datetime(next_matches_pl_df['Date'], format='%Y-%m-%d %H:%M:%S')
-next_matches_pl_df['Div'] = next_matches_pl_df['Div'].replace('SOCCER_EPL', 'E0')
+# Check if there are no matches to scrape
+if not next_matches_data and not next_matches_data_epl:
+    st.write("Season is over! See you next time.")
+else:
+    # Convert the list of dictionaries into a DataFrame
+    next_matches_df = pd.DataFrame(next_matches_data)
+    next_matches_df['Date'] = pd.to_datetime(next_matches_df['Date'], format='%Y-%m-%d %H:%M:%S')
+    next_matches_df['Div'] = next_matches_df['Div'].replace('SOCCER_SPAIN_LA_LIGA', 'SP1')
+    next_matches_pl_df = pd.DataFrame(next_matches_data_epl)
+    next_matches_pl_df['Date'] = pd.to_datetime(next_matches_pl_df['Date'], format='%Y-%m-%d %H:%M:%S')
+    next_matches_pl_df['Div'] = next_matches_pl_df['Div'].replace('SOCCER_EPL', 'E0')
 
-# Append the DataFrame for multiple matches to the existing 'matches' DataFrame
-matches = pd.concat([matches, next_matches_df], ignore_index=True)
-matches = pd.concat([matches, next_matches_pl_df], ignore_index=True)
+    # Append the DataFrame for multiple matches to the existing 'matches' DataFrame
+    matches = pd.concat([matches, next_matches_df], ignore_index=True)
+    matches = pd.concat([matches, next_matches_pl_df], ignore_index=True)
 
-matches = matches.replace({
-    'Villareal': 'Villarreal',
-    'Celta Vigo': 'Celta',
-    'CA Osasuna': 'Osasuna',
-    'Atletico Madrid': 'Ath Madrid',
-    'Athletic Bilbao': 'Ath Bilbao',
-    'Almería': 'Almeria',
-    'Rayo Vallecano': 'Vallecano',
-    'Granada CF': 'Granada',
-    'Cádiz CF': 'Cadiz',
-    'Alavés':'Alaves',
-    'Real Sociedad':'Sociedad',
-    'Real Betis':'Betis',
-    'Real Mallorca':'Mallorca',
-    'Wolverhampton Wanderers':'Wolves',
-    'Tottenham Hotspur':'Tottenham',
-    'Brighton and Hove Albion':'Brighton',
-    'Nottingham Forest':"Nott'm Forest",
-    'Newcastle United':'Newcastle',
-    'West Ham United':'West Ham',
-    'Manchester United':'Man United',
-    'Manchester City':'Man City',
-    'Luton Town':'Luton'
+    matches = matches.replace({
+        'Villareal': 'Villarreal',
+        'Celta Vigo': 'Celta',
+        'CA Osasuna': 'Osasuna',
+        'Atletico Madrid': 'Ath Madrid',
+        'Athletic Bilbao': 'Ath Bilbao',
+        'Almería': 'Almeria',
+        'Rayo Vallecano': 'Vallecano',
+        'Granada CF': 'Granada',
+        'Cádiz CF': 'Cadiz',
+        'Alavés':'Alaves',
+        'Real Sociedad':'Sociedad',
+        'Real Betis':'Betis',
+        'Real Mallorca':'Mallorca',
+        'Wolverhampton Wanderers':'Wolves',
+        'Tottenham Hotspur':'Tottenham',
+        'Brighton and Hove Albion':'Brighton',
+        'Nottingham Forest':"Nott'm Forest",
+        'Newcastle United':'Newcastle',
+        'West Ham United':'West Ham',
+        'Manchester United':'Man United',
+        'Manchester City':'Man City',
+        'Luton Town':'Luton'
+    })
 
-})
-
-# Convert 'Date' to datetime and sort the DataFrame
-matches['Date'] = pd.to_datetime(matches['Date'], dayfirst=True)
-matches.sort_values(by='Date', inplace=True)
+    # Convert 'Date' to datetime and sort the DataFrame
+    matches['Date'] = pd.to_datetime(matches['Date'], dayfirst=True)
+    matches.sort_values(by='Date', inplace=True)
 
 # Function to assign points for a single match
 def assign_points(row):
