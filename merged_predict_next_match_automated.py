@@ -114,6 +114,10 @@ epl_url = 'https://www.skysports.com/premier-league-fixtures'
 next_matches_data = get_next_matches(spanish_league_url, 'soccer_spain_la_liga', num_matches=10)
 next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', num_matches=10)
 
+
+# Set option to suppress error messages related to file upload encoding
+st.set_option('deprecation.showfileUploaderEncoding', False) ## we need to remove this to see actual errors in the code, for now we leave it on 
+
 # Check if there are no matches to scrape
 if not next_matches_data and not next_matches_data_epl:
     st.header("Season's Over!")
