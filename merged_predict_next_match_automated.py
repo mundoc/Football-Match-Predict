@@ -1,19 +1,16 @@
 # By Edmundo Cuadra
 
-"""
 import pandas as pd # For data manipulation
 import numpy as np # For data computation
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, accuracy_score, mean_absolute_error
+import warnings
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
-
-"""
-import warnings
 import random
 import os
 import requests
@@ -26,13 +23,15 @@ import bs4
 from bs4 import BeautifulSoup
 import altair as alt
 
-
 st.header("Season's Over!")
 st.subheader("Stay Tuned for the Next One!")
 
+
+
+"""
 # Ignore all warnings
 warnings.filterwarnings("ignore")
-"""
+
 # Read the CSV file into a Pandas DataFrame.
 matches_old = pd.read_csv('light_leagues_data.csv')
 
@@ -50,7 +49,7 @@ matches.reset_index(drop=True, inplace=True)
 # Drop rows where 'Date' is NaN
 matches = matches.dropna(subset=['Date'])
 
-matches['Date'] = pd.to_datetime(matches['Date'], format='mixed')
+matches['Date'] = pd.to_datetime(matches['Date'], format = 'mixed')
 
 # Create the 'Season' column
 matches['Season'] = np.where(matches['Date'].dt.month >= 8,
@@ -60,7 +59,9 @@ matches['Season'] = np.where(matches['Date'].dt.month >= 8,
 # Convert the 'Season' column to a string in the 'YYYY-YY' format
 matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1).astype(str).str[-2:]
 
+
 # Create new rows (with the upcoming match)
+
 def get_next_matches(url, league_id, season='2023-24', num_matches=10):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -70,9 +71,6 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
     
     # Extract the date from the h4 tag
     match_date_tag = soup.find('h4', class_='fixres__header2')
-    if not match_date_tag:
-        return []
-
     match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with sufiix and month and split it
     match_date_str = ' '.join(match_date_str)  # Join the split parts
     match_date_str = match_date_str.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') # Remove suffix from the day string
@@ -113,6 +111,7 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
 
     return next_matches_data
 
+
 # Use the function to get data for different leagues
 spanish_league_url = 'https://www.skysports.com/la-liga-fixtures'
 epl_url = 'https://www.skysports.com/premier-league-fixtures'
@@ -120,56 +119,47 @@ epl_url = 'https://www.skysports.com/premier-league-fixtures'
 next_matches_data = get_next_matches(spanish_league_url, 'soccer_spain_la_liga', num_matches=10)
 next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', num_matches=10)
 
+# Convert the list of dictionaries into a DataFrame
+next_matches_df = pd.DataFrame(next_matches_data)
+next_matches_df['Date'] = pd.to_datetime(next_matches_df['Date'], format='%Y-%m-%d %H:%M:%S')
+next_matches_df['Div'] = next_matches_df['Div'].replace('SOCCER_SPAIN_LA_LIGA', 'SP1')
+next_matches_pl_df = pd.DataFrame(next_matches_data_epl)
+next_matches_pl_df['Date'] = pd.to_datetime(next_matches_pl_df['Date'], format='%Y-%m-%d %H:%M:%S')
+next_matches_pl_df['Div'] = next_matches_pl_df['Div'].replace('SOCCER_EPL', 'E0')
 
-# Set option to suppress error messages related to file upload encoding
-st.set_option('deprecation.showfileUploaderEncoding', False) ## we need to remove this to see actual errors in the code, for now we leave it on 
+# Append the DataFrame for multiple matches to the existing 'matches' DataFrame
+matches = pd.concat([matches, next_matches_df], ignore_index=True)
+matches = pd.concat([matches, next_matches_pl_df], ignore_index=True)
 
-# Check if there are no matches to scrape
-if not next_matches_data and not next_matches_data_epl:
-    st.header("Season's Over!")
-    st.subheader("Stay Tuned for the Next One!")
-else:
-    # Convert the list of dictionaries into a DataFrame
-    next_matches_df = pd.DataFrame(next_matches_data)
-    next_matches_df['Date'] = pd.to_datetime(next_matches_df['Date'], format='%Y-%m-%d %H:%M:%S')
-    next_matches_df['Div'] = next_matches_df['Div'].replace('SOCCER_SPAIN_LA_LIGA', 'SP1')
-    next_matches_pl_df = pd.DataFrame(next_matches_data_epl)
-    next_matches_pl_df['Date'] = pd.to_datetime(next_matches_pl_df['Date'], format='%Y-%m-%d %H:%M:%S')
-    next_matches_pl_df['Div'] = next_matches_pl_df['Div'].replace('SOCCER_EPL', 'E0')
+matches = matches.replace({
+    'Villareal': 'Villarreal',
+    'Celta Vigo': 'Celta',
+    'CA Osasuna': 'Osasuna',
+    'Atletico Madrid': 'Ath Madrid',
+    'Athletic Bilbao': 'Ath Bilbao',
+    'Almería': 'Almeria',
+    'Rayo Vallecano': 'Vallecano',
+    'Granada CF': 'Granada',
+    'Cádiz CF': 'Cadiz',
+    'Alavés':'Alaves',
+    'Real Sociedad':'Sociedad',
+    'Real Betis':'Betis',
+    'Real Mallorca':'Mallorca',
+    'Wolverhampton Wanderers':'Wolves',
+    'Tottenham Hotspur':'Tottenham',
+    'Brighton and Hove Albion':'Brighton',
+    'Nottingham Forest':"Nott'm Forest",
+    'Newcastle United':'Newcastle',
+    'West Ham United':'West Ham',
+    'Manchester United':'Man United',
+    'Manchester City':'Man City',
+    'Luton Town':'Luton'
 
-    # Append the DataFrame for multiple matches to the existing 'matches' DataFrame
-    matches = pd.concat([matches, next_matches_df], ignore_index=True)
-    matches = pd.concat([matches, next_matches_pl_df], ignore_index=True)
+})
 
-    matches = matches.replace({
-        'Villareal': 'Villarreal',
-        'Celta Vigo': 'Celta',
-        'CA Osasuna': 'Osasuna',
-        'Atletico Madrid': 'Ath Madrid',
-        'Athletic Bilbao': 'Ath Bilbao',
-        'Almería': 'Almeria',
-        'Rayo Vallecano': 'Vallecano',
-        'Granada CF': 'Granada',
-        'Cádiz CF': 'Cadiz',
-        'Alavés':'Alaves',
-        'Real Sociedad':'Sociedad',
-        'Real Betis':'Betis',
-        'Real Mallorca':'Mallorca',
-        'Wolverhampton Wanderers':'Wolves',
-        'Tottenham Hotspur':'Tottenham',
-        'Brighton and Hove Albion':'Brighton',
-        'Nottingham Forest':"Nott'm Forest",
-        'Newcastle United':'Newcastle',
-        'West Ham United':'West Ham',
-        'Manchester United':'Man United',
-        'Manchester City':'Man City',
-        'Luton Town':'Luton'
-    })
-
-    # Convert 'Date' to datetime and sort the DataFrame
-    matches['Date'] = pd.to_datetime(matches['Date'], dayfirst=True)
-    matches.sort_values(by='Date', inplace=True)
-
+# Convert 'Date' to datetime and sort the DataFrame
+matches['Date'] = pd.to_datetime(matches['Date'], dayfirst=True)
+matches.sort_values(by='Date', inplace=True)
 
 # Function to assign points for a single match
 def assign_points(row):
@@ -458,8 +448,8 @@ for index, row in matches.iterrows():
     last_game_reds[home_team] = row['HR']
     last_game_reds[away_team] = row['AR']
 
-# Add column for bookings, shots on target, woodwork, attendance, offside, free kicks, and corners for both home and away teams over their last 5 games (excluding the current game)"""
-"""
+# Add column for bookings, shots on target, woodwork, attendance, offside, free kicks, and corners for both home and away teams over their last 5 games (excluding the current game)
+
 # Generalized function to create a rolling sum column
 def create_rolling_sum(df, team_col, feature_col):
     # Create a temporary DataFrame to avoid modifying the original one
@@ -500,12 +490,12 @@ matches['Rank_diff'] = matches['HomeRanking'] - matches['AwayRanking']
 
 matches['HomeGoalDiff'] = matches['FTHG'] - matches['FTAG']
 
-# Since the first season contains many unknown values ('previous encounter', 'recent goal diff and 'recent points' cant be calculated for the first matches) we are going to drop all of the data for the first year (2005)."""
-"""
+# Since the first season contains many unknown values ('previous encounter', 'recent goal diff and 'recent points' cant be calculated for the first matches) we are going to drop all of the data for the first year (2005).
+
 matches = matches[matches['Date'].dt.year != 2005]
 
-# Create variables for points this season"""
-"""
+# Create variables for points this season
+
 # Sort the DataFrame by date
 matches = matches.sort_values(by='Date')
 # Create a dictionary to store current season points for each team
@@ -535,13 +525,13 @@ for index, row in matches.iterrows():
     matches.at[index, 'AwayTeam_PointsThisSeason'] = team_points_current_season[away_team]
 
 
-# Convert div to binary"""
-"""
+# Convert div to binary
+
 matches['SP1'] = (matches['Div'] == 'SP1').astype(int)
 matches['E0'] = (matches['Div'] == 'E0').astype(int)
 
-# Store model variables in two DFs: X for independent variables and y for dependent"""
-"""
+# Store model variables in two DFs: X for independent variables and y for dependent
+
 # Store rows with NA values in the 'MatchOutcome' column in another DataFrame
 last_rows_df = matches[matches['MatchOutcome'].isna()].copy()
 
@@ -581,8 +571,8 @@ X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.25
 # Make sure y_train is int type
 y_train = y_train.astype(int)
 
-# Scale the data"""
-"""
+# Scale the data
+
 # Standardize the data
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
@@ -725,4 +715,3 @@ st.altair_chart(bars, use_container_width=True)
 st.write(f"Average number of correct predictions for every 20 matches: 12.32 matches")
 
 """
-"""👁⚫️✨"""
