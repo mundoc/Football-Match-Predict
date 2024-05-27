@@ -164,6 +164,7 @@ else:
     matches['Date'] = pd.to_datetime(matches['Date'], dayfirst=True)
     matches.sort_values(by='Date', inplace=True)
 
+"""
 # Function to assign points for a single match
 def assign_points(row):
     if row['FTR'] == 'H':
@@ -452,7 +453,7 @@ for index, row in matches.iterrows():
     last_game_reds[away_team] = row['AR']
 
 # Add column for bookings, shots on target, woodwork, attendance, offside, free kicks, and corners for both home and away teams over their last 5 games (excluding the current game)"""
-
+"""
 # Generalized function to create a rolling sum column
 def create_rolling_sum(df, team_col, feature_col):
     # Create a temporary DataFrame to avoid modifying the original one
@@ -494,11 +495,11 @@ matches['Rank_diff'] = matches['HomeRanking'] - matches['AwayRanking']
 matches['HomeGoalDiff'] = matches['FTHG'] - matches['FTAG']
 
 # Since the first season contains many unknown values ('previous encounter', 'recent goal diff and 'recent points' cant be calculated for the first matches) we are going to drop all of the data for the first year (2005)."""
-
+"""
 matches = matches[matches['Date'].dt.year != 2005]
 
 # Create variables for points this season"""
-
+"""
 # Sort the DataFrame by date
 matches = matches.sort_values(by='Date')
 # Create a dictionary to store current season points for each team
@@ -529,12 +530,12 @@ for index, row in matches.iterrows():
 
 
 # Convert div to binary"""
-
+"""
 matches['SP1'] = (matches['Div'] == 'SP1').astype(int)
 matches['E0'] = (matches['Div'] == 'E0').astype(int)
 
 # Store model variables in two DFs: X for independent variables and y for dependent"""
-
+"""
 # Store rows with NA values in the 'MatchOutcome' column in another DataFrame
 last_rows_df = matches[matches['MatchOutcome'].isna()].copy()
 
@@ -575,7 +576,7 @@ X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.25
 y_train = y_train.astype(int)
 
 # Scale the data"""
-
+"""
 # Standardize the data
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
@@ -717,4 +718,5 @@ bars = alt.Chart(df).mark_bar().encode(
 st.altair_chart(bars, use_container_width=True)
 st.write(f"Average number of correct predictions for every 20 matches: 12.32 matches")
 
+"""
 """👁⚫️✨"""
