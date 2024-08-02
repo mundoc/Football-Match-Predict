@@ -584,11 +584,11 @@ X_to_predict_scaled = scaler.transform(X_to_predict)
 
 
 # Set random seeds to make the neural network replicable
-seed_value = 42
-os.environ['PYTHONHASHSEED']=str(seed_value)
-random.seed(seed_value)
-np.random.seed(seed_value)
-tf.random.set_seed(seed_value)
+#seed_value = 42
+#os.environ['PYTHONHASHSEED']=str(seed_value)
+#random.seed(seed_value)
+#np.random.seed(seed_value)
+#tf.random.set_seed(seed_value)
 
 # Categrocial NN
 
