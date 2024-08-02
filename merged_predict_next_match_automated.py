@@ -61,11 +61,11 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
     # Find the relevant elements containing match data
     matches = soup.find_all('div', class_='fixres__item')
     
-    # Extract the date from the h4 tag
+ # Extract the date from the h4 tag
     match_date_tag = soup.find('h4', class_='fixres__header2')
     match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with sufiix and month and split it
+    match_date_str[0] = match_date_str[0].replace('st', '').replace('nd', '').replace('rd', '').replace('th','')  # Remove suffix from the day string
     match_date_str = ' '.join(match_date_str)  # Join the split parts
-    match_date_str = match_date_str.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') # Remove suffix from the day string
     match_date = datetime.strptime(match_date_str, "%d %B")  # Convert to datetime object
 
     current_year = datetime.now().year
@@ -137,6 +137,8 @@ matches = matches.replace({
     'Real Sociedad':'Sociedad',
     'Real Betis':'Betis',
     'Real Mallorca':'Mallorca',
+    'Real Valladolid':'Valladolid',
+    'Espanyol':'Espanol',
     'Wolverhampton Wanderers':'Wolves',
     'Tottenham Hotspur':'Tottenham',
     'Brighton and Hove Albion':'Brighton',
@@ -275,8 +277,11 @@ for season, team_points in team_points_season.items():
         season_data['Position'].append(position)
         season_data['Div'].append(team_div)
 
-    # Append season data to the positions_per_season DataFrame
-    positions_per_season = positions_per_season._append(pd.DataFrame(season_data))
+    # Convert season_data to a DataFrame
+    season_df = pd.DataFrame(season_data)
+    
+    # Use pd.concat to concatenate the new DataFrame with the existing one
+    positions_per_season = pd.concat([positions_per_season, season_df], ignore_index=True)
 
 # Add columns indicating whether the home and away teams will play in the Champions League or Europa League the season afterward
 matches['HomeChampionsLeague'] = 0
@@ -404,7 +409,8 @@ historical_rankings = [
     ("Blackpool", 40),
     ("Huddersfield", 41),
     ("Luton", 42),
-    ("Derby", 43)
+    ("Derby", 43),
+    ("Ipswich Town", 44)
 ]
 
 # Convert historical rankings list to a dictionary
