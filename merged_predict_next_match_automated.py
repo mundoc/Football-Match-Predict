@@ -56,12 +56,12 @@ matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1
 
 # Create new rows (with the upcoming match)
 
-def get_next_matches(url, league_id, season='2023-24', num_matches=10):
+def get_next_matches(url, league_id, season='2024-25', num_matches=10):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
 
     # Find the relevant elements containing match data
-    matches = soup.find_all('div', class_='fixres__item')
+    matches = soup.find_all('div', class_='FixtureDisplay_fixtureWrapper__ccHm')
     
  # Extract the date from the h4 tag
     match_date_tag = soup.find('h4', class_='fixres__header2')
@@ -79,8 +79,8 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
 
     for match in matches:  # Iterate over all matches
         # Extract data for each match
-        home_team = match.find('span', class_='swap-text__target').text.strip()
-        away_team = match.find_all('span', class_='swap-text__target')[1].text.strip()
+        home_team = match.find('div', class_='FixtureDetails_team__vDBn1 FixtureDetails_team--home__iAqAy').text.strip()
+        away_team = match.find('div', class_='FixtureDetails_team__vDBn1 FixtureDetails_team--away__iAqAy').text.strip()
         match_time = match.find('span', class_='matches__date').text.strip()
 
         # Remove the year from the match time
@@ -107,8 +107,8 @@ def get_next_matches(url, league_id, season='2023-24', num_matches=10):
 
 
 # Use the function to get data for different leagues
-spanish_league_url = 'https://www.skysports.com/la-liga-fixtures'
-epl_url = 'https://www.skysports.com/premier-league-fixtures'
+spanish_league_url = 'https://talksport.com/football/primera-division/fixtures'
+epl_url = 'https://talksport.com/football/premier-league/fixtures'
 
 next_matches_data = get_next_matches(spanish_league_url, 'soccer_spain_la_liga', num_matches=10)
 next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', num_matches=10)
