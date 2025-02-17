@@ -62,10 +62,9 @@ def get_next_matches(url, league_id, season='2024-25', num_matches=10):
 
     # Find the relevant elements containing match data
     matches = soup.find_all('div', class_='FixtureDisplay_fixtureWrapper__ccHm')
-    
- # Extract the date from the h4 tag
+
     match_date_tag = soup.find('h4', class_='fixres__header2')
-    match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with sufiix and month and split it
+    match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with suffix and month and split it
     match_date_str[0] = match_date_str[0].replace('st', '').replace('nd', '').replace('rd', '').replace('th','')  # Remove suffix from the day string
     match_date_str = ' '.join(match_date_str)  # Join the split parts
     match_date = datetime.strptime(match_date_str, "%d %B")  # Convert to datetime object
@@ -81,10 +80,10 @@ def get_next_matches(url, league_id, season='2024-25', num_matches=10):
         # Extract data for each match
         home_team = match.find('div', class_='FixtureDetails_team__vDBn1 FixtureDetails_team--home__iAqAy').text.strip()
         away_team = match.find('div', class_='FixtureDetails_team__vDBn1 FixtureDetails_team--away__iAqAy').text.strip()
-        match_time = match.find('span', class_='matches__date').text.strip()
 
-        # Remove the year from the match time
-        match_time = match_time.split(", ")[-1]
+        # Extract match time from the <time> tag
+        match_time_tag = match.find('time', class_='FixtureDetails_time__FPLoh')
+        match_time = match_time_tag['datetime'].split('T')[-1]  # Extract time portion (HH:MM)
 
         # Convert match time to a datetime object
         match_time = datetime.strptime(match_time, "%H:%M")
