@@ -129,13 +129,14 @@ matches = matches.replace({
     'Villareal': 'Villarreal',
     'Celta Vigo': 'Celta',
     'CA Osasuna': 'Osasuna',
-    'Atletico Madrid': 'Ath Madrid',
-    'Athletic Bilbao': 'Ath Bilbao',
+    'Atlético': 'Ath Madrid',
+    'Athletic Club': 'Ath Bilbao',
     'Almería': 'Almeria',
     'Rayo Vallecano': 'Vallecano',
     'Granada CF': 'Granada',
     'Cádiz CF': 'Cadiz',
     'Alavés':'Alaves',
+    'Leganés':'Leganes',
     'Real Sociedad':'Sociedad',
     'Real Betis':'Betis',
     'Real Mallorca':'Mallorca',
@@ -144,12 +145,12 @@ matches = matches.replace({
     'Wolverhampton Wanderers':'Wolves',
     'Tottenham Hotspur':'Tottenham',
     'Brighton and Hove Albion':'Brighton',
-    'Nottingham Forest':"Nott'm Forest",
+    'Nottm Forest':"Nott'm Forest",
     'Newcastle United':'Newcastle',
     'West Ham United':'West Ham',
-    'Manchester United':'Man United',
-    'Manchester City':'Man City',
-    'Luton Town':'Luton'
+    'Man Utd':'Man United',
+    'Luton Town':'Luton',
+    'Ipswich': 'Ipswich Town'
 
 })
 
