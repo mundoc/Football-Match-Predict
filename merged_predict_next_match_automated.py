@@ -63,7 +63,7 @@ def get_next_matches(url, league_id, season='2024-25', num_matches=10):
     # Find the relevant elements containing match data
     matches = soup.find_all('div', class_='FixtureDisplay_fixtureWrapper__ccHm')
 
-    match_date_tag = soup.find('h4', class_='fixres__header2')
+    match_date_tag = soup.find('h5', class_='FixturesHeader_title_7aos0')
     match_date_str = match_date_tag.text.strip().split(' ')[1:]  # Extract day with suffix and month and split it
     match_date_str[0] = match_date_str[0].replace('st', '').replace('nd', '').replace('rd', '').replace('th','')  # Remove suffix from the day string
     match_date_str = ' '.join(match_date_str)  # Join the split parts
