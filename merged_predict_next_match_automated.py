@@ -50,6 +50,7 @@ matches['Season'] = np.where(matches['Date'].dt.month >= 8,
 
 # Convert the 'Season' column to a string in the 'YYYY-YY' format
 matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1).astype(str).str[-2:]
+matches_df = matches
 
 # Get upcoming matches
 # Today's date in the required format, this is just for the code to pass, date is irrelevant to the model
@@ -98,6 +99,7 @@ next_matches = pd.concat([next_matches_data_spanish_league, next_matches_data_ep
 
 # Ensure no repeated matches after concatenating
 matches = pd.concat([matches_df, next_matches], ignore_index=True)
+
 
 matches = matches.replace({
     'Villareal': 'Villarreal',
