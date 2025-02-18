@@ -82,7 +82,7 @@ def convert_to_proper_format(date_str, time_str):
         print(f"Error formatting date {date_str} and time {time_str}: {e}")
         return None
 
-def get_next_matches(url, league_name, league_code, num_matches=10):
+def get_next_matches(url, league_name, league_code, season='2024-25', num_matches=10):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -111,6 +111,7 @@ def get_next_matches(url, league_name, league_code, num_matches=10):
     matches = [{
         'Div': league_code,   # Set Div as league code (SP1 or E0)
         'Date': combined_dates[i],  # Set Date as combined date and time
+        'Season': Season,
         'HomeTeam': home_teams[i],
         'AwayTeam': away_teams[i]
     } for i in range(min(num_matches, len(home_teams), len(away_teams), len(combined_dates)))]
