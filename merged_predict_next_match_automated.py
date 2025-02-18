@@ -53,6 +53,11 @@ matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1
 
 
 
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+from datetime import datetime
+
 def get_next_matches(url, league_name, league_code, season='2024-25', num_matches=10):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
