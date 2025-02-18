@@ -82,7 +82,35 @@ def convert_to_proper_format(date_str, time_str):
         print(f"Error formatting date {date_str} and time {time_str}: {e}")
         return None
 
-def get_next_matches(url, league_name, league_code, season='2024-25', num_matches=10):
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+from datetime import datetime
+
+def convert_to_proper_format(date_str, time_str):
+    # Define the months mapping
+    months = {
+        "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", 
+        "Jun": "06", "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", 
+        "Nov": "11", "Dec": "12"
+    }
+    
+    # Extract day, month, and time from the string
+    try:
+        day = int(date_str.split()[1][:-2])  # Remove "st", "nd", "rd", or "th"
+        month = months[date_str.split()[2][:3]]  # Get the first 3 letters of the month
+        year = datetime.now().year  # Assume the year is the current year
+        time = time_str.strip()
+
+        # Combine and create a formatted string
+        date_time_str = f"{year}-{month}-{day} {time}:00"  # Add ":00" for seconds
+        formatted_date = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
+        return formatted_date.strftime("%Y-%m-%d %H:%M:%S")
+    except Exception as e:
+        print(f"Error formatting date {date_str} and time {time_str}: {e}")
+        return None
+
+def get_next_matches(url, league_name, league_code,  season='2024-25', num_matches=10):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -111,7 +139,7 @@ def get_next_matches(url, league_name, league_code, season='2024-25', num_matche
     matches = [{
         'Div': league_code,   # Set Div as league code (SP1 or E0)
         'Date': combined_dates[i],  # Set Date as combined date and time
-        'Season': Season,
+        'Season':  season,
         'HomeTeam': home_teams[i],
         'AwayTeam': away_teams[i]
     } for i in range(min(num_matches, len(home_teams), len(away_teams), len(combined_dates)))]
