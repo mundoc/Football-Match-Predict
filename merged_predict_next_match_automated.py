@@ -28,8 +28,8 @@ warnings.filterwarnings("ignore")
 matches_old = pd.read_csv('light_leagues_data23_24.csv')
 
 #Get data from new seasons
-matches_new_liga = pd.read_csv('https://www.football-data.co.uk/mmz4281/2324/SP1.csv')
-matches_new_prem = pd.read_csv('https://www.football-data.co.uk/mmz4281/2324/E0.csv')
+matches_new_liga = pd.read_csv('https://www.football-data.co.uk/mmz4281/2425/SP1.csv')
+matches_new_prem = pd.read_csv('https://www.football-data.co.uk/mmz4281/2425/E0.csv')
 
 # Concatenate the DataFrames one on top of the other
 leagues = pd.concat([matches_new_liga, matches_new_prem], axis=0)
