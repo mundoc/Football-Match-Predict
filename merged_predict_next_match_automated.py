@@ -80,11 +80,6 @@ def convert_to_proper_format(date_str, time_str):
         print(f"Error formatting date {date_str} and time {time_str}: {e}")
         return None
 
-import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
-
 def convert_to_proper_format(date_str, time_str):
     # Define the months mapping
     months = {
@@ -156,11 +151,10 @@ next_matches_data_spanish_league = get_next_matches(spanish_league_url, 'soccer_
 next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', 'E0', num_matches=10)
 
 # Append the DataFrame for multiple matches to the existing 'matches' DataFrame
-matches_df = pd.concat([matches, next_matches_data_spanish_league], ignore_index=True)
-matches_df = pd.concat([matches, next_matches_data_epl], ignore_index=True)
+next_matches = pd.concat([next_matches_data_spanish_league, next_matches_data_epl], ignore_index=True)
+matches_df = pd.concat([matches, next_matches], ignore_index=True)
 
 matches = matches_df #rename it back to matches for it to work with the rest of the code
-
 matches = matches.replace({
     'Villareal': 'Villarreal',
     'Celta Vigo': 'Celta',
