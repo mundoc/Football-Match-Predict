@@ -27,15 +27,13 @@ warnings.filterwarnings("ignore")
 # Read the CSV file into a Pandas DataFrame.
 matches_old = pd.read_csv('light_leagues_data23_24.csv')
 
-#comming this out for the first fixture
-# Get data from new seasons
-#matches_new_liga = pd.read_csv('https://www.football-data.co.uk/mmz4281/2324/SP1.csv')
-#matches_new_prem = pd.read_csv('https://www.football-data.co.uk/mmz4281/2324/E0.csv')
+Get data from new seasons
+matches_new_liga = pd.read_csv('https://www.football-data.co.uk/mmz4281/2324/SP1.csv')
+matches_new_prem = pd.read_csv('https://www.football-data.co.uk/mmz4281/2324/E0.csv')
 
 # Concatenate the DataFrames one on top of the other
-#leagues = pd.concat([matches_new_liga, matches_new_prem], axis=0)
-#matches = pd.concat([matches_old, leagues], axis=0)
-matches = matches_old
+leagues = pd.concat([matches_new_liga, matches_new_prem], axis=0)
+matches = pd.concat([matches_old, leagues], axis=0)
 
 # Reset the index of the combined DataFrame, if needed
 matches.reset_index(drop=True, inplace=True)
