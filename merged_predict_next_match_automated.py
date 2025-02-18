@@ -51,12 +51,28 @@ matches['Season'] = np.where(matches['Date'].dt.month >= 8,
 # Convert the 'Season' column to a string in the 'YYYY-YY' format
 matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1).astype(str).str[-2:]
 
+def convert_to_proper_format(date_str, time_str):
+    # Define the months mapping
+    months = {
+        "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", 
+        "Jun": "06", "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", 
+        "Nov": "11", "Dec": "12"
+    }
+    
+    # Extract day, month, and time from the string
+    try:
+        day = int(date_str.split()[1][:-2])  # Remove "st", "nd", "rd", or "th"
+        month = months[date_str.split()[2][:3]]  # Get the first 3 letters of the month
+        year = datetime.now().year  # Assume the year is the current year
+        time = time_str.strip()
 
-
-import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
+        # Combine and create a formatted string
+        date_time_str = f"{year}-{month}-{day} {time}:00"  # Add ":00" for seconds
+        formatted_date = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
+        return formatted_date.strftime("%Y-%m-%d %H:%M:%S")
+    except Exception as e:
+        print(f"Error formatting date {date_str} and time {time_str}: {e}")
+        return None
 
 def get_next_matches(url, league_name, league_code, season='2024-25', num_matches=10):
     response = requests.get(url)
