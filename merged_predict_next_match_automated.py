@@ -52,6 +52,7 @@ matches['Season'] = np.where(matches['Date'].dt.month >= 8,
 matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1).astype(str).str[-2:]
 
 
+
 def get_next_matches(url, league_name, league_code, season='2024-25', num_matches=10):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -115,10 +116,12 @@ next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', 'E0', num_matche
 
 # Append the DataFrame for multiple matches to the existing 'matches' DataFrame
 next_matches = pd.concat([next_matches_data_spanish_league, next_matches_data_epl], ignore_index=True)
+
 # Ensure no repeated matches after concatenating
 matches_df = pd.concat([matches, next_matches], ignore_index=True).drop_duplicates(subset=['HomeTeam', 'AwayTeam', 'Date'])
 
-matches = matches_df #rename it back to matches for it to work with the rest of the code
+matches = matches_df  # rename it back to matches for it to work with the rest of the code
+
 matches = matches.replace({
     'Villareal': 'Villarreal',
     'Celta Vigo': 'Celta',
