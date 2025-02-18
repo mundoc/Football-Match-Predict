@@ -51,97 +51,53 @@ matches['Season'] = np.where(matches['Date'].dt.month >= 8,
 # Convert the 'Season' column to a string in the 'YYYY-YY' format
 matches['Season'] = matches['Season'].astype(str) + '-' + (matches['Season'] + 1).astype(str).str[-2:]
 
-def convert_to_proper_format(date_str, time_str):
-    # Define the months mapping
-    months = {
-        "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", 
-        "Jun": "06", "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", 
-        "Nov": "11", "Dec": "12"
-    }
-    
-    # Extract day, month, and time from the string
-    try:
-        day = int(date_str.split()[1][:-2])  # Remove "st", "nd", "rd", or "th"
-        month = months[date_str.split()[2][:3]]  # Get the first 3 letters of the month
-        year = datetime.now().year  # Assume the year is the current year
-        time = time_str.strip()
+# Get upcoming matches
+# Today's date in the required format, this is just for the code to pass, date is irrelevant to the model
+today_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # Combine and create a formatted string
-        date_time_str = f"{year}-{month}-{day} {time}:00"  # Add ":00" for seconds
-        formatted_date = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
-        return formatted_date.strftime("%Y-%m-%d %H:%M:%S")
-    except Exception as e:
-        print(f"Error formatting date {date_str} and time {time_str}: {e}")
-        return None
-
-def get_next_matches(url, league_name, league_code, season='2024-25', num_matches=10):
+# Function to pull next 10 matches for a given league
+def get_next_matches(url, league_code, season='2024-25', num_matches=10):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
 
-    # Find all team elements
+    # Extract teams, times, and dates
     all_teams = soup.find_all('div', class_='FixtureDetails_team__vDBn1')
-
-    # Extract and store team names (odd indices for home, even for away)
     home_teams = [all_teams[i].text.strip() for i in range(0, len(all_teams), 2)]
     away_teams = [all_teams[i].text.strip() for i in range(1, len(all_teams), 2)]
 
-    # Find match times
     all_times = soup.find_all('time', class_='FixtureDetails_time__FPLoh')
-    match_times = [time.text.strip() for time in all_times]  # Extract times from the <time> tags
+    match_times = [time.text.strip() for time in all_times]
 
-    # Find the date for each match
     all_dates = soup.find_all('h5', class_='FixturesHeader_title__7aos0')
-    match_dates = [date.text.strip() for date in all_dates]  # Extract dates from the <h5> tags
+    match_dates = [date.text.strip() for date in all_dates]
 
-    # Combine the date and time into one string and format it
-    combined_dates = [
-        convert_to_proper_format(match_dates[i], match_times[i]) 
-        for i in range(min(len(match_dates), len(match_times)))
-    ]
-
-    # Prepare data for DataFrame, including Div, Date, HomeTeam, AwayTeam
+    # Create list of match data with today's date, Div, and Season values
     matches = [{
-        'Div': league_code,   # Set Div as league code (SP1 or E0)
-        'Date': combined_dates[i],  # Set Date as combined date and time
+        'Div': league_code,
+        'Date': today_date,
         'Season': season,
         'HomeTeam': home_teams[i],
         'AwayTeam': away_teams[i]
-    } for i in range(min(num_matches, len(home_teams), len(away_teams), len(combined_dates)))]
+    } for i in range(min(num_matches, len(home_teams), len(away_teams)))]
 
-    # Ensure no duplicate matches (based on HomeTeam and AwayTeam)
-    unique_matches = []
-    seen_matches = set()
-    
-    for match in matches:
-        match_tuple = (match['HomeTeam'], match['AwayTeam'], match['Date'])
-        if match_tuple not in seen_matches:
-            seen_matches.add(match_tuple)
-            unique_matches.append(match)
-    
-    # Create DataFrame
-    df_matches = pd.DataFrame(unique_matches)
+    # Create DataFrame and remove duplicates
+    df_matches = pd.DataFrame(matches).drop_duplicates(subset=['HomeTeam', 'AwayTeam', 'Date'])
 
-    # Ensure exactly 10 matches are returned (even if fewer matches are scraped)
-    if len(df_matches) <= num_matches:
-        print(f"Warning: Less than {num_matches} matches found. Only {len(df_matches)} matches returned.")
-    
-    return df_matches.head(num_matches)  # Return only the first 10 matches
+    return df_matches.head(num_matches)
 
-# Use the function to get data for different leagues
+# URLs for each league
 spanish_league_url = "https://talksport.com/football/primera-division/fixtures"
 epl_url = "https://talksport.com/football/premier-league/fixtures"
 
-# Get the next matches for both leagues with Div codes 'SP1' and 'E0'
-next_matches_data_spanish_league = get_next_matches(spanish_league_url, 'soccer_spain_la_liga', 'SP1', num_matches=10)
-next_matches_data_epl = get_next_matches(epl_url, 'soccer_epl', 'E0', num_matches=10)
+# Fetch next matches for both leagues
+next_matches_data_spanish_league = get_next_matches(spanish_league_url, 'SP1', season='2024-25')
+next_matches_data_epl = get_next_matches(epl_url, 'E0', season='2024-25')
 
-# Append the DataFrame for multiple matches to the existing 'matches' DataFrame
+# Concatenate data from both leagues and display the results
 next_matches = pd.concat([next_matches_data_spanish_league, next_matches_data_epl], ignore_index=True)
 
 # Ensure no repeated matches after concatenating
-matches_df = pd.concat([matches, next_matches], ignore_index=True).drop_duplicates(subset=['HomeTeam', 'AwayTeam', 'Date'])
-
-matches = matches_df  # rename it back to matches for it to work with the rest of the code
+matches = pd.concat([matches_df, next_matches], ignore_index=True)
 
 matches = matches.replace({
     'Villareal': 'Villarreal',
