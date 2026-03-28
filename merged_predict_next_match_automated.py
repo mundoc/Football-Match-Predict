@@ -43,6 +43,7 @@ st.markdown("""
     border:1px solid rgba(255,255,255,0.06);
     border-radius:16px; padding:1.2rem 1rem 0.6rem;
     margin-bottom:0.75rem;
+    min-height:210px;
     transition:transform 0.2s,box-shadow 0.2s;
 }
 .match-card:hover {
