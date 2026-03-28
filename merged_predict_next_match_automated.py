@@ -2,7 +2,6 @@
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import warnings
 import math
@@ -416,13 +415,18 @@ def load_and_predict():
         matches.loc[mask, 'HomeEuropaLeague'] = matches['HomeTeam'].isin(teams).astype(int)
         matches.loc[mask, 'AwayEuropaLeague'] = matches['AwayTeam'].isin(teams).astype(int)
 
+    def prev_season_str(s):
+        year = int(s[:4])
+        return f"{year - 1}-{str(year)[-2:]}"
+
     for idx, row in matches.iterrows():
         if row['Season'] == first_season:
             continue
-        season, div = row['Season'], row['Div']
+        prev_s = prev_season_str(row['Season'])
+        div = row['Div']
         for prefix, team_col in [('Home', 'HomeTeam'), ('Away', 'AwayTeam')]:
             pos = positions_per_season[
-                (positions_per_season['Season'] == season)
+                (positions_per_season['Season'] == prev_s)
                 & (positions_per_season['Team'] == row[team_col])
                 & (positions_per_season['Div'] == div)
             ]['Position'].values
@@ -462,11 +466,11 @@ def load_and_predict():
             cur_s = row['Season']
             tpcs = defaultdict(int)
         ht, at = row['HomeTeam'], row['AwayTeam']
+        matches.at[idx, 'HomeTeam_PointsThisSeason'] = tpcs[ht]
+        matches.at[idx, 'AwayTeam_PointsThisSeason'] = tpcs[at]
         hp, ap = assign_points(row)
         tpcs[ht] += hp[1]
         tpcs[at] += ap[1]
-        matches.at[idx, 'HomeTeam_PointsThisSeason'] = tpcs[ht]
-        matches.at[idx, 'AwayTeam_PointsThisSeason'] = tpcs[at]
 
     # 10 — League dummies ─────────────────────────────────────
     matches['SP1'] = (matches['Div'] == 'SP1').astype(int)
@@ -476,13 +480,14 @@ def load_and_predict():
     last_rows = matches[matches['MatchOutcome'].isna()].copy()
     train_data = matches[matches['MatchOutcome'].notna()]
 
+    train_data = train_data.sort_values('Date')
     X = train_data[FEATURE_COLS]
     y = train_data['MatchOutcome']
     X_to_predict = last_rows[FEATURE_COLS]
 
-    X_temp, X_test, y_temp, _ = train_test_split(X, y, test_size=0.2, random_state=42)
-    X_train, _, y_train, _ = train_test_split(X_temp, y_temp, test_size=0.25, random_state=42)
-    y_train = y_train.astype(int)
+    n = len(X)
+    X_train = X.iloc[:int(n * 0.6)]
+    y_train = y.iloc[:int(n * 0.6)].astype(int)
 
     scaler = StandardScaler()
     scaler.fit(X_train)
