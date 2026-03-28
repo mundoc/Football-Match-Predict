@@ -5,7 +5,6 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import warnings
-import tensorflow as tf
 import math
 import os
 import requests
@@ -16,7 +15,6 @@ import plotly.graph_objs as go
 import altair as alt
 
 warnings.filterwarnings("ignore")
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # ─── Page configuration ─────────────────────────────────────
 st.set_page_config(
@@ -189,6 +187,45 @@ def create_rolling_sum(df, team_col, feature_col):
         .shift().reset_index(level=0, drop=True)
     )
     return temp[col_name]
+
+
+@st.cache_resource
+def _load_weights():
+    return np.load('model_weights.npz')
+
+
+def nn_predict(X):
+    """Forward pass through the trained neural network using only numpy.
+    Architecture: Dense(128,relu)→BN→Dense(64,relu)→BN→Dense(32,relu)→BN→Dense(3,softmax)
+    """
+    w = _load_weights()
+    eps = 1e-3
+
+    def dense(x, layer):
+        return x @ w[f'{layer}_kernel'] + w[f'{layer}_bias']
+
+    def batch_norm(x, layer):
+        gamma = w[f'{layer}_gamma']
+        beta = w[f'{layer}_beta']
+        mean = w[f'{layer}_moving_mean']
+        var = w[f'{layer}_moving_variance']
+        return gamma * (x - mean) / np.sqrt(var + eps) + beta
+
+    def relu(x):
+        return np.maximum(0, x)
+
+    def softmax(x):
+        e = np.exp(x - x.max(axis=1, keepdims=True))
+        return e / e.sum(axis=1, keepdims=True)
+
+    x = relu(dense(X, 'dense'))
+    x = batch_norm(x, 'batch_normalization')
+    x = relu(dense(x, 'dense_1'))
+    x = batch_norm(x, 'batch_normalization_1')
+    x = relu(dense(x, 'dense_2'))
+    x = batch_norm(x, 'batch_normalization_2')
+    x = softmax(dense(x, 'dense_3'))
+    return x
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
@@ -451,9 +488,8 @@ def load_and_predict():
     scaler.fit(X_train)
     X_pred_scaled = scaler.transform(X_to_predict)
 
-    # 12 — Model prediction ───────────────────────────────────
-    model = tf.keras.models.load_model('NN_model.h5')
-    probs = model.predict(X_pred_scaled, verbose=0)
+    # 12 — Model prediction (pure numpy forward pass) ────────
+    probs = nn_predict(X_pred_scaled)
 
     result = pd.DataFrame({
         'Home': last_rows['HomeTeam'].values,
