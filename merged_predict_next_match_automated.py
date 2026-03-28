@@ -68,6 +68,11 @@ st.markdown("""
 .stTabs [data-baseweb="tab-list"] {gap:8px;justify-content:center;}
 .stTabs [data-baseweb="tab"] {border-radius:10px;padding:8px 28px;font-weight:600;}
 
+div[data-testid="stHorizontalBlock"] {align-items:flex-start;}
+div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+    display:flex; flex-direction:column;
+}
+
 .section-divider {
     height:1px; margin:1.5rem 0;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);
