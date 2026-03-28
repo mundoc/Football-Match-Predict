@@ -75,6 +75,37 @@ st.markdown("""
 .acc-header {text-align:center; margin:0.5rem 0;}
 .acc-header h3 {font-weight:700; color:#e0e0e0;}
 .acc-header p {color:#888; font-size:0.9rem;}
+
+.confidence-badge {
+    display:inline-block; font-size:0.6rem; font-weight:700;
+    letter-spacing:0.05em; text-transform:uppercase;
+    padding:2px 10px; border-radius:20px; margin:0 auto 4px;
+    text-align:center;
+}
+.conf-high {background:rgba(34,197,94,0.15); color:#22c55e; border:1px solid rgba(34,197,94,0.3);}
+.conf-med  {background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3);}
+.conf-low  {background:rgba(148,163,184,0.15); color:#94a3b8; border:1px solid rgba(148,163,184,0.3);}
+
+.form-row {
+    display:flex; justify-content:center; align-items:center;
+    gap:4px; margin:2px 0;
+}
+.form-label {font-size:0.65rem; color:#666; margin-right:4px; min-width:32px; text-align:right;}
+.form-dot {
+    width:10px; height:10px; border-radius:50%; display:inline-block;
+}
+.dot-w {background:#22c55e;} .dot-d {background:#6b7280;} .dot-l {background:#ef4444;}
+.dot-none {background:rgba(255,255,255,0.08);}
+
+.insights {
+    margin-top:6px; padding:6px 10px;
+    background:rgba(255,255,255,0.03); border-radius:8px;
+}
+.insight-line {
+    font-size:0.72rem; color:#94a3b8; padding:1px 0;
+    display:flex; align-items:center; gap:5px;
+}
+.insight-line .il-icon {font-size:0.7rem; opacity:0.7;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -316,10 +347,11 @@ def load_and_predict():
     matches['Date'] = pd.to_datetime(matches['Date'], format='mixed', dayfirst=True)
     matches.sort_values(by='Date', inplace=True)
 
-    # 3 — Feature: recent form (5 & 20 games) ────────────────
+    # 3 — Feature: recent form (5 & 20 games) + form streaks ─
     tp5 = defaultdict(lambda: np.zeros(5, dtype=int))
     tp20 = defaultdict(lambda: np.zeros(20, dtype=int))
     tgd = defaultdict(lambda: np.zeros(5, dtype=int))
+    form_streak = defaultdict(list)
 
     for idx, row in matches.iterrows():
         ht, at = row['HomeTeam'], row['AwayTeam']
@@ -332,6 +364,10 @@ def load_and_predict():
         matches.at[idx, 'AwayTeam_RecentGoalDiff'] = tgd[at].sum()
         matches.at[idx, 'HomeTeam_RecentPoints20'] = tp20[ht].sum()
         matches.at[idx, 'AwayTeam_RecentPoints20'] = tp20[at].sum()
+
+        matches.at[idx, 'HomeForm'] = ','.join(form_streak[ht][-5:])
+        matches.at[idx, 'AwayForm'] = ','.join(form_streak[at][-5:])
+
         for arr, team, val in [
             (tp5, ht, hp[1]), (tp5, at, ap[1]),
             (tp20, ht, hp[1]), (tp20, at, ap[1]),
@@ -340,6 +376,9 @@ def load_and_predict():
         for team, val in [(ht, hgd), (at, agd)]:
             tgd[team] = np.roll(tgd[team], -1)
             tgd[team][-1] = val if not math.isnan(val) else 0
+
+        form_streak[ht].append('W' if hp[1] == 3 else 'D' if hp[1] == 1 else 'L')
+        form_streak[at].append('W' if ap[1] == 3 else 'D' if ap[1] == 1 else 'L')
 
     # 4 — Feature: last encounter ─────────────────────────────
     ler = defaultdict(lambda: 'NA')
@@ -503,6 +542,16 @@ def load_and_predict():
         'Home Win Probability': probs[:, 2],
         'Draw Probability': probs[:, 1],
         'Away Win Probability': probs[:, 0],
+        'HomeForm': last_rows['HomeForm'].values,
+        'AwayForm': last_rows['AwayForm'].values,
+        'HomeRecentPts': last_rows['HomeTeam_RecentPoints'].values,
+        'AwayRecentPts': last_rows['AwayTeam_RecentPoints'].values,
+        'HomeGD': last_rows['HomeTeam_RecentGoalDiff'].values,
+        'AwayGD': last_rows['AwayTeam_RecentGoalDiff'].values,
+        'HomeCL': last_rows['HomeChampionsLeague'].values,
+        'AwayCL': last_rows['AwayChampionsLeague'].values,
+        'LastH2HWon': last_rows['LastEncounterWon'].values,
+        'LastH2HLost': last_rows['LastEncounterLost'].values,
     })
     return result.sort_index()
 
@@ -551,20 +600,101 @@ def predicted_outcome(home_p, draw_p, away_p):
     return 'Draw', 'pred-draw'
 
 
+def confidence_badge(home_p, draw_p, away_p):
+    mx = max(home_p, draw_p, away_p)
+    if mx >= 0.55:
+        return 'HIGH CONFIDENCE', 'conf-high'
+    elif mx >= 0.42:
+        return 'MEDIUM CONFIDENCE', 'conf-med'
+    return 'LOW CONFIDENCE', 'conf-low'
+
+
+def form_dots_html(form_str, label):
+    results = form_str.split(',') if form_str else []
+    while len(results) < 5:
+        results.insert(0, '')
+    dots = ''
+    for r in results[-5:]:
+        cls = {'W': 'dot-w', 'D': 'dot-d', 'L': 'dot-l'}.get(r, 'dot-none')
+        dots += f'<span class="form-dot {cls}"></span>'
+    return f'<div class="form-row"><span class="form-label">{label}</span>{dots}</div>'
+
+
+def build_insights(row):
+    lines = []
+    h_pts = row.get('HomeRecentPts', 0)
+    a_pts = row.get('AwayRecentPts', 0)
+    h_gd = row.get('HomeGD', 0)
+    a_gd = row.get('AwayGD', 0)
+
+    if h_pts >= 12:
+        lines.append(('🔥', f'{row["Home"]}: {int(h_pts)} pts from last 5'))
+    elif h_pts <= 4:
+        lines.append(('📉', f'{row["Home"]}: only {int(h_pts)} pts from last 5'))
+
+    if a_pts >= 12:
+        lines.append(('🔥', f'{row["Away"]}: {int(a_pts)} pts from last 5'))
+    elif a_pts <= 4:
+        lines.append(('📉', f'{row["Away"]}: only {int(a_pts)} pts from last 5'))
+
+    if h_gd >= 5:
+        lines.append(('⚽', f'{row["Home"]}: +{int(h_gd)} goal diff in last 5'))
+    if a_gd >= 5:
+        lines.append(('⚽', f'{row["Away"]}: +{int(a_gd)} goal diff in last 5'))
+
+    if row.get('LastH2HWon', 0) == 1:
+        lines.append(('🏆', f'{row["Home"]} won last H2H meeting'))
+    elif row.get('LastH2HLost', 0) == 1:
+        lines.append(('🏆', f'{row["Away"]} won last H2H meeting'))
+
+    if row.get('HomeCL', 0) == 1:
+        lines.append(('⭐', f'{row["Home"]} in CL contention'))
+    if row.get('AwayCL', 0) == 1:
+        lines.append(('⭐', f'{row["Away"]} in CL contention'))
+
+    if not lines:
+        diff = abs(h_pts - a_pts)
+        if diff >= 3:
+            better = row["Home"] if h_pts > a_pts else row["Away"]
+            lines.append(('📊', f'{better} in stronger recent form'))
+        else:
+            lines.append(('📊', 'Teams evenly matched on recent form'))
+
+    return lines[:3]
+
+
 def render_match_card(row):
     hp = row['Home Win Probability']
     dp = row['Draw Probability']
     ap = row['Away Win Probability']
-    label, css = predicted_outcome(hp, dp, ap)
+    label, pred_css = predicted_outcome(hp, dp, ap)
+    conf_text, conf_css = confidence_badge(hp, dp, ap)
+
+    home_form = form_dots_html(row.get('HomeForm', ''), 'H')
+    away_form = form_dots_html(row.get('AwayForm', ''), 'A')
+
+    insights = build_insights(row)
+    insight_html = ''
+    if insights:
+        lines_html = ''.join(
+            f'<div class="insight-line">'
+            f'<span class="il-icon">{icon}</span> {text}</div>'
+            for icon, text in insights
+        )
+        insight_html = f'<div class="insights">{lines_html}</div>'
 
     st.markdown(
         f'<div class="match-card">'
+        f'<div style="text-align:center;margin-bottom:4px;">'
+        f'<span class="confidence-badge {conf_css}">{conf_text}</span></div>'
         f'<div class="match-teams">'
         f'<span class="team-name">{row["Home"]}</span>'
         f'<span class="vs-badge">vs</span>'
         f'<span class="team-name">{row["Away"]}</span>'
         f'</div>'
-        f'<div class="pred-label {css}">Prediction: {label}</div>'
+        f'{home_form}{away_form}'
+        f'<div class="pred-label {pred_css}">Prediction: {label}</div>'
+        f'{insight_html}'
         f'</div>',
         unsafe_allow_html=True,
     )
