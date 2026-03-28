@@ -164,9 +164,6 @@ FEATURE_COLS = [
     'HomeTeam_RecentPoints', 'AwayTeam_RecentPoints',
     'HomeTeam_PointsThisSeason', 'AwayTeam_PointsThisSeason',
     'HomeRanking', 'AwayRanking', 'SP1', 'E0',
-    'HomeRestDays', 'AwayRestDays',
-    'HomeTeam_HomePoints5', 'AwayTeam_AwayPoints5',
-    'H2H_GoalDiff',
 ]
 
 
@@ -319,13 +316,10 @@ def load_and_predict():
     matches['Date'] = pd.to_datetime(matches['Date'], format='mixed', dayfirst=True)
     matches.sort_values(by='Date', inplace=True)
 
-    # 3 — Feature: recent form, rest days, venue-specific form ─
+    # 3 — Feature: recent form (5 & 20 games) ────────────────
     tp5 = defaultdict(lambda: np.zeros(5, dtype=int))
     tp20 = defaultdict(lambda: np.zeros(20, dtype=int))
     tgd = defaultdict(lambda: np.zeros(5, dtype=int))
-    last_match_date = {}
-    home_pts5 = defaultdict(lambda: np.zeros(5, dtype=int))
-    away_pts5 = defaultdict(lambda: np.zeros(5, dtype=int))
 
     for idx, row in matches.iterrows():
         ht, at = row['HomeTeam'], row['AwayTeam']
@@ -338,22 +332,6 @@ def load_and_predict():
         matches.at[idx, 'AwayTeam_RecentGoalDiff'] = tgd[at].sum()
         matches.at[idx, 'HomeTeam_RecentPoints20'] = tp20[ht].sum()
         matches.at[idx, 'AwayTeam_RecentPoints20'] = tp20[at].sum()
-
-        match_date = row['Date']
-        for team in [ht, at]:
-            if team in last_match_date:
-                delta = (match_date - last_match_date[team]).days
-                rest = min(delta, 14)
-            else:
-                rest = 7
-            if team == ht:
-                matches.at[idx, 'HomeRestDays'] = rest
-            else:
-                matches.at[idx, 'AwayRestDays'] = rest
-
-        matches.at[idx, 'HomeTeam_HomePoints5'] = home_pts5[ht].sum()
-        matches.at[idx, 'AwayTeam_AwayPoints5'] = away_pts5[at].sum()
-
         for arr, team, val in [
             (tp5, ht, hp[1]), (tp5, at, ap[1]),
             (tp20, ht, hp[1]), (tp20, at, ap[1]),
@@ -363,24 +341,14 @@ def load_and_predict():
             tgd[team] = np.roll(tgd[team], -1)
             tgd[team][-1] = val if not math.isnan(val) else 0
 
-        home_pts5[ht] = np.roll(home_pts5[ht], -1)
-        home_pts5[ht][-1] = hp[1]
-        away_pts5[at] = np.roll(away_pts5[at], -1)
-        away_pts5[at][-1] = ap[1]
-
-        last_match_date[ht] = match_date
-        last_match_date[at] = match_date
-
-    # 4 — Feature: last encounter + H2H goal difference ──────
+    # 4 — Feature: last encounter ─────────────────────────────
     ler = defaultdict(lambda: 'NA')
-    h2h_gd = defaultdict(lambda: np.zeros(5, dtype=int))
     for h in matches['HomeTeam'].unique():
         for a in matches['AwayTeam'].unique():
             ler[(h, a)] = 'D'
     for idx, row in matches.iterrows():
-        ht, at = row['HomeTeam'], row['AwayTeam']
-        t = (ht, at)
-        r = (at, ht)
+        t = (row['HomeTeam'], row['AwayTeam'])
+        r = (row['AwayTeam'], row['HomeTeam'])
         matches.at[idx, 'LastEncounterWon'] = 0
         matches.at[idx, 'LastEncounterLost'] = 0
         if ler[t] == 'H':
@@ -392,16 +360,6 @@ def load_and_predict():
         elif ler[r] == 'H':
             matches.at[idx, 'LastEncounterLost'] = 1
         ler[t] = row['FTR']
-
-        pair = tuple(sorted([ht, at]))
-        matches.at[idx, 'H2H_GoalDiff'] = (
-            h2h_gd[pair].sum() if ht <= at else -h2h_gd[pair].sum()
-        )
-        gd_val = row['FTHG'] - row['FTAG']
-        if not math.isnan(gd_val):
-            signed = gd_val if ht <= at else -gd_val
-            h2h_gd[pair] = np.roll(h2h_gd[pair], -1)
-            h2h_gd[pair][-1] = signed
 
     # 5 — Feature: European competition flags ─────────────────
     positions_per_season = pd.DataFrame(
