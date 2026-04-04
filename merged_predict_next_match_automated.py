@@ -500,7 +500,8 @@ def load_and_predict():
     for feat in ['HY', 'HS', 'HST', 'HC', 'AY', 'AS', 'AST', 'AC']:
         tt = 'HomeTeam' if feat.startswith('H') else 'AwayTeam'
         matches[f'Rolling_{feat}'] = create_rolling_sum(matches, tt, feat)
-    matches.fillna(0, inplace=True)
+    numeric_cols = matches.select_dtypes(include='number').columns
+    matches[numeric_cols] = matches[numeric_cols].fillna(0)
 
     # 9 — Feature: points this season ─────────────────────────
     matches['MatchOutcome'] = matches['FTR'].map({'H': 2, 'D': 1, 'A': 0})
