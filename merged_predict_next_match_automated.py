@@ -387,6 +387,8 @@ def load_and_predict():
         form_streak[at].append('W' if ap[1] == 3 else 'D' if ap[1] == 1 else 'L')
 
     # 4 — Feature: last encounter ─────────────────────────────
+    matches['LastEncounterWon'] = 0
+    matches['LastEncounterLost'] = 0
     ler = defaultdict(lambda: 'NA')
     for h in matches['HomeTeam'].unique():
         for a in matches['AwayTeam'].unique():
