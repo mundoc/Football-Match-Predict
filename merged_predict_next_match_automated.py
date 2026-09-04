@@ -5,7 +5,6 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 import warnings
 import math
-import os
 import requests
 from collections import defaultdict
 from datetime import datetime
@@ -530,12 +529,10 @@ def load_and_predict():
 
     train_data = train_data.sort_values('Date')
     X = train_data[FEATURE_COLS]
-    y = train_data['MatchOutcome']
     X_to_predict = last_rows[FEATURE_COLS]
 
     n = len(X)
     X_train = X.iloc[:int(n * 0.6)]
-    y_train = y.iloc[:int(n * 0.6)].astype(int)
 
     scaler = StandardScaler()
     scaler.fit(X_train)
