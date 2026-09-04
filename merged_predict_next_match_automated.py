@@ -562,7 +562,28 @@ def load_and_predict():
         'LastH2HWon': last_rows['LastEncounterWon'].values,
         'LastH2HLost': last_rows['LastEncounterLost'].values,
     })
-    return result.sort_index()
+
+    # 13 — Retrospective check: predict last week's already-played matches ─
+    cutoff = pd.Timestamp(datetime.now()) - pd.Timedelta(days=7)
+    recent = train_data[train_data['Date'] >= cutoff]
+    if not recent.empty:
+        recent_probs = nn_predict(scaler.transform(recent[FEATURE_COLS]))
+        last_week = pd.DataFrame({
+            'Date': recent['Date'].values,
+            'Home': recent['HomeTeam'].values,
+            'Away': recent['AwayTeam'].values,
+            'Div': recent['Div'].values,
+            'FTHG': recent['FTHG'].values,
+            'FTAG': recent['FTAG'].values,
+            'FTR': recent['FTR'].values,
+            'Home Win Probability': recent_probs[:, 2],
+            'Draw Probability': recent_probs[:, 1],
+            'Away Win Probability': recent_probs[:, 0],
+        }).sort_values('Date', ascending=False).reset_index(drop=True)
+    else:
+        last_week = pd.DataFrame()
+
+    return result.sort_index(), last_week
 
 
 # ─── Chart helpers ───────────────────────────────────────────
@@ -722,7 +743,7 @@ st.markdown(
 )
 
 try:
-    preds = load_and_predict()
+    preds, last_week = load_and_predict()
 except Exception as exc:
     st.error(f"Something went wrong while loading data: {exc}")
     st.stop()
@@ -790,3 +811,70 @@ st.markdown(
     '</p>',
     unsafe_allow_html=True,
 )
+
+# ─── Last week's results section ────────────────────────────
+FTR_LABELS = {'H': 'Home Win', 'D': 'Draw', 'A': 'Away Win'}
+
+
+def build_last_week_table(df):
+    rows = []
+    for _, r in df.iterrows():
+        pred_label, _ = predicted_outcome(
+            r['Home Win Probability'], r['Draw Probability'], r['Away Win Probability'])
+        actual_label = FTR_LABELS.get(r['FTR'], r['FTR'])
+        rows.append({
+            'Match': f'{r["Home"]} vs {r["Away"]}',
+            'Our Prediction': pred_label,
+            'Actual Score': f'{int(r["FTHG"])}-{int(r["FTAG"])}',
+            'Actual Result': actual_label,
+            'Correct?': '✅' if pred_label == actual_label else '❌',
+        })
+    return pd.DataFrame(rows)
+
+
+st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="acc-header">'
+    '<h3>🗓️ Last Week Check</h3>'
+    '<p>How our predictions compared to the actual results (last 7 days)</p>'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+if last_week.empty:
+    st.info("No completed matches in the last 7 days to check yet.")
+else:
+    last_week_table = build_last_week_table(last_week)
+    correct_n = (last_week_table['Correct?'] == '✅').sum()
+    st.markdown(
+        f'<p style="text-align:center;color:#888;font-size:0.9rem;">'
+        f'Got <b>{correct_n}/{len(last_week_table)}</b> right last week</p>',
+        unsafe_allow_html=True,
+    )
+    st.dataframe(last_week_table, use_container_width=True, hide_index=True)
+
+# ─── Copy predictions section ───────────────────────────────
+
+def build_whatsapp_text(la_liga_df, epl_df):
+    """Plain-text summary of all fixtures + predicted outcome, ready to paste."""
+    today_str = datetime.now().strftime('%a %d %b %Y')
+    lines = [f'⚽ Football Predictions — {today_str}', '']
+    for league_name, df in [('La Liga', la_liga_df), ('Premier League', epl_df)]:
+        if df.empty:
+            continue
+        lines.append(f'*{league_name}*')
+        for _, row in df.iterrows():
+            hp = row['Home Win Probability']
+            dp = row['Draw Probability']
+            ap = row['Away Win Probability']
+            label, _ = predicted_outcome(hp, dp, ap)
+            pct = round(max(hp, dp, ap) * 100)
+            lines.append(f'{row["Home"]} vs {row["Away"]} → {label} ({pct}%)')
+        lines.append('')
+    return '\n'.join(lines).strip()
+
+
+st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+with st.expander("📋 Copy Predictions"):
+    st.caption("Click the copy icon (top-right of the box), then paste into WhatsApp.")
+    st.code(build_whatsapp_text(la_liga, epl), language=None)
