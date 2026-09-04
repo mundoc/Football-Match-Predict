@@ -115,7 +115,19 @@ div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
 """, unsafe_allow_html=True)
 
 # ─── Constants ───────────────────────────────────────────────
-CURRENT_SEASON = '2025-26'
+def _season_str(start_year):
+    """e.g. 2026 -> '2026-27'"""
+    return f'{start_year}-{(start_year + 1) % 100:02d}'
+
+
+def _season_code(start_year):
+    """e.g. 2026 -> '2627' (football-data.co.uk's season code format)"""
+    return f'{start_year % 100:02d}{(start_year + 1) % 100:02d}'
+
+
+_today = datetime.now()
+_current_start_year = _today.year if _today.month >= 8 else _today.year - 1
+CURRENT_SEASON = _season_str(_current_start_year)
 
 ESPN_TO_FD = {
     'Rayo Vallecano': 'Vallecano', 'Atletico Madrid': 'Ath Madrid',
@@ -318,7 +330,8 @@ def load_and_predict():
     # 1 — Historical + current season data ────────────────────
     matches_old = pd.read_csv('light_leagues_data23_24.csv')
     season_dfs = [matches_old]
-    for scode in ['2425', '2526']:
+    scodes = [_season_code(_current_start_year - 1), _season_code(_current_start_year)]
+    for scode in scodes:
         for div in ['SP1', 'E0']:
             try:
                 url = f'https://www.football-data.co.uk/mmz4281/{scode}/{div}.csv'
